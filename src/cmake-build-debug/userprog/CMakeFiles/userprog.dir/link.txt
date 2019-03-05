@@ -1,0 +1,2 @@
+/usr/bin/ar qc libuserprog.a  CMakeFiles/userprog.dir/exception.c.o CMakeFiles/userprog.dir/gdt.c.o CMakeFiles/userprog.dir/pagedir.c.o CMakeFiles/userprog.dir/process.c.o CMakeFiles/userprog.dir/syscall.c.o CMakeFiles/userprog.dir/tss.c.o
+/usr/bin/ranlib libuserprog.a

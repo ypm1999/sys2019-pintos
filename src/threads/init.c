@@ -30,6 +30,8 @@
 #include "userprog/tss.h"
 #else
 #include "tests/threads/tests.h"
+#include "../devices/shutdown.h"
+
 #endif
 #ifdef FILESYS
 #include "devices/block.h"
@@ -133,9 +135,38 @@ pintos_init (void)
     /* Run actions specified on kernel command line. */
     run_actions (argv);
   } else {
-    // TODO: no command line passed to kernel. Run interactively 
-  }
 
+#define CMD_LENGTH 128
+      char cmd[CMD_LENGTH] = {'\0'};
+
+      while (true) {
+          int tick = timer_ticks();
+          int sec = tick / TIMER_FREQ;
+          int min = sec / 60;
+          int hour = min / 60;
+          char output_str[CMD_LENGTH] = {'\0'};
+
+          snprintf(output_str, CMD_LENGTH, "~Sotiud Team@SJTU ||%02d:%02d:%02d||", hour % 24, min % 60, sec % 60);
+          puts(output_str);
+          putchar('$');
+          putchar(' ');
+
+          readline(cmd, CMD_LENGTH);
+
+          if(strcmp(cmd, "info") == 0) {
+            puts("I'm PintOS powered by Sotiud Team@SJTU");
+          }
+          else if (strcmp(cmd, "exit") == 0) {
+            shutdown_configure(SHUTDOWN_POWER_OFF);
+            break;
+          }
+          else {
+            puts("Invalid command.");
+          }
+      }
+#undef CMD_LENGTH
+
+  }
   /* Finish up. */
   shutdown ();
   thread_exit ();

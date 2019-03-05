@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="pintos"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\devices\;CMake Files\lib\;CMake Files\threads\;CMake Files\userprog\;CMake Files\vm\;CMake Files\filesys\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="devices">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/devices/libdevices.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/devices"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 devices"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="devices/fast">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/devices/libdevices.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/devices"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 devices/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/devices/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="lib">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/lib/liblib.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/lib"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/home/chen/pintos/src/lib/."/>
+					<Add directory="/home/chen/pintos/src/lib/./user"/>
+					<Add directory="/home/chen/pintos/src/lib/./kernel"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 lib"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="lib/fast">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/lib/liblib.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/lib"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/home/chen/pintos/src/lib/."/>
+					<Add directory="/home/chen/pintos/src/lib/./user"/>
+					<Add directory="/home/chen/pintos/src/lib/./kernel"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 lib/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/lib/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="threads">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/threads/libthreads.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/threads"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 threads"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="threads/fast">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/threads/libthreads.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/threads"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 threads/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/threads/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="userprog">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/userprog/libuserprog.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/userprog"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 userprog"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="userprog/fast">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/userprog/libuserprog.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/userprog"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 userprog/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/userprog/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="filesys">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/filesys/libfilesys.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/filesys"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 filesys"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="filesys/fast">
+				<Option output="/home/chen/pintos/src/cmake-build-debug/filesys/libfilesys.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/chen/pintos/src/cmake-build-debug/filesys"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/chen/pintos/src/."/>
+					<Add directory="/home/chen/pintos/src/./devices"/>
+					<Add directory="/home/chen/pintos/src/./lib"/>
+					<Add directory="/home/chen/pintos/src/./threads"/>
+					<Add directory="/home/chen/pintos/src/./userprog"/>
+					<Add directory="/home/chen/pintos/src/./vm"/>
+					<Add directory="/home/chen/pintos/src/./filesys"/>
+					<Add directory="/home/chen/pintos/src/./lib/kernel"/>
+					<Add directory="/home/chen/pintos/src/./lib/user"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 filesys/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/chen/pintos/src/cmake-build-debug/filesys/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/chen/pintos/src/devices/block.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/block.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/ide.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/ide.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/input.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/input.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/intq.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/intq.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/kbd.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/kbd.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/partition.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/partition.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/pit.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/pit.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/rtc.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/rtc.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/serial.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/serial.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/shutdown.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/shutdown.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/speaker.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/speaker.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/timer.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/timer.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/vga.c">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/vga.h">
+			<Option target="devices"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/directory.c">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/directory.h">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/file.c">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/file.h">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/filesys.c">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/filesys.h">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/free-map.c">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/free-map.h">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/fsutil.c">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/fsutil.h">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/inode.c">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/inode.h">
+			<Option target="filesys"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/arithmetic.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/debug.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/debug.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/bitmap.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/bitmap.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/console.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/console.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/debug.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/hash.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/hash.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/list.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/kernel/list.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/random.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/random.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/stdio.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/stdio.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/stdlib.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/stdlib.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/string.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/string.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/user/console.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/user/debug.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/user/entry.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/user/syscall.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/user/syscall.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/ustar.c">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/ustar.h">
+			<Option target="lib"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/init.c">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/init.h">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/interrupt.c">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/interrupt.h">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/malloc.c">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/malloc.h">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/palloc.c">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/palloc.h">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/synch.c">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/synch.h">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/thread.c">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/thread.h">
+			<Option target="threads"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/exception.c">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/exception.h">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/gdt.c">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/gdt.h">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/pagedir.c">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/pagedir.h">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/process.c">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/process.h">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/syscall.c">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/syscall.h">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/tss.c">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/tss.h">
+			<Option target="userprog"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/devices/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\devices\"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/lib/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/threads/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\threads\"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/userprog/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\userprog\"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/vm/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\vm\"/>
+		</Unit>
+		<Unit filename="/home/chen/pintos/src/filesys/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\filesys\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
