@@ -29,7 +29,8 @@ static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
-void (*thread_sleep_ticks_handler_pointer)(struct thread*, void*);
+extern void (*thread_sleep_ticks_handler_pointer)(struct thread*, void*);
+
 
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
@@ -38,6 +39,7 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  thread_sleep_ticks_handler_pointer = &thread_sleep_ticks_handler; // init function pointer
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -177,8 +179,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-  thread_sleep_ticks_handler_pointer = &thread_sleep_ticks_handler;
-  thread_foreach(thread_sleep_ticks_handler_pointer, (void*) args);
+  thread_foreach(thread_sleep_ticks_handler_pointer, NULL);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
