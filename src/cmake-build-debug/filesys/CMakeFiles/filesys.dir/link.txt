@@ -1,2 +1,0 @@
-/usr/bin/ar qc libfilesys.a  CMakeFiles/filesys.dir/directory.c.o CMakeFiles/filesys.dir/file.c.o CMakeFiles/filesys.dir/filesys.c.o CMakeFiles/filesys.dir/free-map.c.o CMakeFiles/filesys.dir/fsutil.c.o CMakeFiles/filesys.dir/inode.c.o
-/usr/bin/ranlib libfilesys.a
