@@ -107,9 +107,12 @@ palloc_get_multiple (enum palloc_flags flags, size_t page_cnt)
    then the page is filled with zeros.  If no pages are
    available, returns a null pointer, unless PAL_ASSERT is set in
    FLAGS, in which case the kernel panics. */
+int cnt = 0;
 void *
 palloc_get_page (enum palloc_flags flags) 
 {
+//  cnt++;
+//  printf("cnt : %d\n", cnt);
   return palloc_get_multiple (flags, 1);
 }
 
@@ -145,6 +148,8 @@ palloc_free_multiple (void *pages, size_t page_cnt)
 void
 palloc_free_page (void *page) 
 {
+//  cnt--;
+//  printf("cnt : %d\n", cnt);
   palloc_free_multiple (page, 1);
 }
 

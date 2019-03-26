@@ -15,6 +15,12 @@ void sema_init (struct semaphore *, unsigned value);
 void sema_down (struct semaphore *);
 bool sema_try_down (struct semaphore *);
 void sema_up (struct semaphore *);
+
+/* Implementation by Wang Started */
+void sema_up_without_revolt (struct semaphore *);
+/* Implementation by Wang Ended */
+
+
 void sema_self_test (void);
 
 /* Lock. */

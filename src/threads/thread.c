@@ -14,13 +14,22 @@
 #include "threads/vaddr.h"
 
 #ifdef USERPROG
+
 #include "userprog/process.h"
+#include "filesys/filesys.h"
+#include "filesys/file.h"
+#include "malloc.h"
+
 #endif
 
 /* Random value for struct thread's `magic' member.
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
+
+/* Implementation by ypm Started */
+static struct list file_list;
+/* Implementation by ypm Ended */
 
 /* The average load of system */
 static struct real_num_fixed32 load_avg;
@@ -33,6 +42,10 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+/* Implementation by Wang Started */
+static struct list children;
+/* Implementation by Wang Ended */
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -44,11 +57,11 @@ static struct lock tid_lock;
 
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame
-  {
+{
     void *eip;                  /* Return address. */
     thread_func *function;      /* Function to call. */
     void *aux;                  /* Auxiliary data for function. */
-  };
+};
 
 /* Statistics. */
 static long long idle_ticks;    /* # of timer ticks spent idle. */
@@ -76,6 +89,23 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+/* Implementation by Wang Started */
+
+/* Get the child-message of thread tid from the global child list. */
+struct child_message *thread_get_child_message(tid_t tid)
+{
+  struct list_elem *e;
+  struct child_message *l;
+  for (e = list_rbegin (&children); e != list_rend (&children); e = list_prev (e))
+  {
+    l = list_entry (e, struct child_message, allelem);
+    if (l->tid == tid)
+      return l;
+  }
+  return NULL;
+}
+/* Implementation by Wang Ended */
+
 /* For comparing two threads by their priorities.
    Return true if a_ points to the thread with higher priority. */
 bool
@@ -97,10 +127,10 @@ thread_revolt (void)
       !list_empty (&ready_list) &&
       thread_get_priority () <
       thread_get_certain_priority (
-        list_entry (list_begin (&ready_list), struct thread, elem)))
-    {
-      thread_yield ();
-    }
+              list_entry (list_begin (&ready_list), struct thread, elem)))
+  {
+    thread_yield ();
+  }
 }
 
 /* Insert a thread to the ready list in order. */
@@ -134,6 +164,13 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init (&children);
+
+  /* Implementation by ypm Started */
+  #ifdef USERPROG
+  list_init(&file_list);
+  #endif
+  /* Implementation by ypm Ended */
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -173,8 +210,8 @@ thread_tick (void)
   if (t == idle_thread)
     idle_ticks++;
 #ifdef USERPROG
-    else if (t->pagedir != NULL)
-      user_ticks++;
+  else if (t->pagedir != NULL)
+    user_ticks++;
 #endif
   else
     kernel_ticks++;
@@ -228,6 +265,22 @@ thread_create (const char *name, int priority,
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
 
+  /* Implementation by Wang Started */
+#ifdef USERPROG
+  struct child_message *own = palloc_get_page (PAL_ZERO);
+  own->tid = tid;
+  own->waited = false;
+  own->exited = false;
+  own->terminated = false;
+  own->load_failed = false;
+  own->return_value = 0;
+  own->sema_finished = &t->sema_finished;
+  own->sema_started = &t->sema_started;
+  list_push_back (&children, &own->allelem);
+  t->message_to_grandpa = own;
+#endif
+  /* Implementation by Wang Ended */
+
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
   kf->eip = NULL;
@@ -242,6 +295,18 @@ thread_create (const char *name, int priority,
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
   sf->ebp = 0;
+
+  /* Implementation by ypm Started */
+#ifdef USERPROG
+  if (tid > 2){
+    t->exec_file = filesys_open(name);
+    if (t->exec_file != NULL)
+      file_deny_write(t->exec_file);
+  }
+  else
+    t->exec_file = NULL;
+#endif
+  /* Implementation by ypm Ended */
 
   /* Add to run queue. */
   thread_unblock (t);
@@ -329,6 +394,31 @@ thread_exit (void)
 
 #ifdef USERPROG
   process_exit ();
+
+  /* Implementation by Wang Started */
+  sema_up_without_revolt (&thread_current ()->sema_finished);
+  /* Implementation by Wang Ended */
+
+  /* Implementation by ypm Started */
+  struct thread* cur = thread_current();
+  if (!list_empty(&file_list)){
+    struct list_elem* i;
+    for (i = list_begin(&file_list); i != list_end(&file_list); i = list_next(i)){
+      struct file_handle* hd;
+      hd = list_entry(i, struct file_handle, elem);
+      if (hd->owned_thread == cur){
+        i = list_prev(i);
+        list_remove(&(hd->elem));
+        free(hd);
+      }
+    }
+  }
+  if(cur->exec_file != NULL){
+    file_allow_write(cur->exec_file);
+    file_close(cur->exec_file);
+  }
+  /* Implementation by ypm Ended */
+
 #endif
 
   /* Remove thread from all threads list, set our status to dying,
@@ -371,15 +461,15 @@ thread_foreach (thread_action_func *func, void *aux)
 
   for (e = list_begin (&all_list); e != list_end (&all_list);
        e = list_next (e))
-    {
-      struct thread *t = list_entry (e, struct thread, allelem);
-      func (t, aux);
-    }
+  {
+    struct thread *t = list_entry (e, struct thread, allelem);
+    func (t, aux);
+  }
 }
 
 
 /* Handle sleep_ticks for each thread */
-void
+static void
 thread_sleep_ticks_handler(struct thread *t, void *args UNUSED)
 {
   if (t->sleep_ticks > 0)
@@ -400,15 +490,15 @@ thread_set_priority (int new_priority)
   /* Warning: if current thread is donated,
      this behaviour should be delayed until the donation is released! */
   if (thread_current ()->max_donate == 0)
-    {
-      thread_current ()->priority = new_priority;
-      thread_revolt ();
-    }
+  {
+    thread_current ()->priority = new_priority;
+    thread_revolt ();
+  }
   else
-    {
-      /* Delay this behaviour temporarily. */
-      thread_current ()->priority_to_set = new_priority;
-    }
+  {
+    /* Delay this behaviour temporarily. */
+    thread_current ()->priority_to_set = new_priority;
+  }
 }
 
 /* Returns the current thread's priority. */
@@ -426,7 +516,7 @@ thread_get_certain_priority (const struct thread *t)
 }
 
 /* Update thread priority using recent_cpu and nice value of threads */
-void
+static void
 thread_update_priority(struct thread* t, void *args UNUSED){
   if(t == idle_thread)
     return;
@@ -434,7 +524,7 @@ thread_update_priority(struct thread* t, void *args UNUSED){
   t->priority =  PRI_MAX - recent_cpu_div4 - t->nice * 2;
 }
 
-void thread_ready_list_sort(){
+void thread_ready_list_sort(void){
   list_sort(&ready_list, thread_priority_more, NULL);
 }
 
@@ -460,7 +550,7 @@ thread_get_nice (void)
 /* Update load_avg
  * load_avg = 59/60 * load_avg + 1/60 * ready_threads
  * */
-void
+static void
 thread_update_load_avg(void)
 {
 
@@ -475,7 +565,7 @@ thread_update_load_avg(void)
       ready_threads++;
   }
   load_avg = real_num_fixed32_div_int(real_num_fixed32_add_int
-             (real_num_fixed32_mul_int(load_avg, 59),ready_threads),60);
+                                              (real_num_fixed32_mul_int(load_avg, 59),ready_threads),60);
 }
 
 /* Returns 100 times the system load average. */
@@ -493,7 +583,7 @@ void thread_add_recent_cpu(void)
   struct thread* cur = thread_current();
   if (cur != idle_thread)
     cur->recent_cpu = real_num_fixed32_add_int(cur->recent_cpu, 1);
-    thread_update_priority(thread_current(), NULL);
+  thread_update_priority(thread_current(), NULL);
 }
 
 
@@ -501,14 +591,14 @@ void thread_add_recent_cpu(void)
  * recent_cpu = recent_cpu * (load_avg * 2 / (load_avg * 2 + 1)) + nice
  * Nice is thread's nice value
  * */
-void
+static void
 thread_update_recent_cpu(struct thread *t, void* aux UNUSED)
 {
   ASSERT(thread_mlfqs);
   int load_avg2 = thread_get_load_avg() * 2;
   t->recent_cpu = real_num_fixed32_add_int(real_num_fixed32_mul
-                  (real_num_fixed32_div_int2(load_avg2, load_avg2 + 100),
-                  t->recent_cpu), t->nice);
+                                                   (real_num_fixed32_div_int2(load_avg2, load_avg2 + 100),
+                                                    t->recent_cpu), t->nice);
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -520,6 +610,22 @@ thread_get_recent_cpu (void)
           real_num_fixed32_mul_int(thread_current()->recent_cpu, 100)
   );
 }
+
+/* Implementation by ypm Started */
+void
+thread_timer(bool full_second){
+  if (thread_mlfqs){
+    thread_add_recent_cpu();
+    if (full_second){
+      thread_update_load_avg();
+      thread_foreach(thread_update_recent_cpu, NULL);
+      thread_foreach(thread_update_priority, NULL);
+      thread_ready_list_sort();
+    }
+  }
+  thread_foreach(thread_sleep_ticks_handler, NULL);
+}
+/* Implementation by ypm Ended */
 
 /* Idle thread.  Executes when no other thread is ready to run.
 
@@ -538,25 +644,25 @@ idle (void *idle_started_ UNUSED)
   sema_up (idle_started);
 
   for (;;)
-    {
-      /* Let someone else run. */
-      intr_disable ();
-      thread_block ();
+  {
+    /* Let someone else run. */
+    intr_disable ();
+    thread_block ();
 
-      /* Re-enable interrupts and wait for the next one.
+    /* Re-enable interrupts and wait for the next one.
 
-         The `sti' instruction disables interrupts until the
-         completion of the next instruction, so these two
-         instructions are executed atomically.  This atomicity is
-         important; otherwise, an interrupt could be handled
-         between re-enabling interrupts and waiting for the next
-         one to occur, wasting as much as one clock tick worth of
-         time.
+       The `sti' instruction disables interrupts until the
+       completion of the next instruction, so these two
+       instructions are executed atomically.  This atomicity is
+       important; otherwise, an interrupt could be handled
+       between re-enabling interrupts and waiting for the next
+       one to occur, wasting as much as one clock tick worth of
+       time.
 
-         See [IA32-v2a] "HLT", [IA32-v2b] "STI", and [IA32-v3a]
-         7.11.1 "HLT Instruction". */
-      asm volatile ("sti; hlt" : : : "memory");
-    }
+       See [IA32-v2a] "HLT", [IA32-v2b] "STI", and [IA32-v3a]
+       7.11.1 "HLT Instruction". */
+    asm volatile ("sti; hlt" : : : "memory");
+  }
 }
 
 /* Function used as the basis for a kernel thread. */
@@ -619,6 +725,18 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority_to_set = -1;
   t->max_donate = 0;
   t->father = NULL;
+
+#ifdef USERPROG
+  /* Implementation by Chen Started */
+  t->return_value = 0;
+  /* Implementation by Chen Ended */
+
+  /* Implementation by Wang Started */
+  list_init (&t->child_list);
+  sema_init (&t->sema_finished, 0);
+  sema_init (&t->sema_started, 0);
+  /* Implementation by Wang Ended */
+#endif
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
@@ -692,10 +810,10 @@ thread_schedule_tail (struct thread *prev)
      initial_thread because its memory was not obtained via
      palloc().) */
   if (prev != NULL && prev->status == THREAD_DYING && prev != initial_thread)
-    {
-      ASSERT (prev != cur);
-      palloc_free_page (prev);
-    }
+  {
+    ASSERT (prev != cur);
+    palloc_free_page (prev);
+  }
 }
 
 /* Schedules a new process.  At entry, interrupts must be off and
@@ -739,3 +857,39 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+#ifdef USERPROG
+/* Implementation by ypm Started */
+/* Terminate thread with a return value FINAL_VALUE */
+void
+thread_exit_with_return_value(struct intr_frame *f, int return_value) {
+  struct thread *cur = thread_current();
+  cur->return_value = return_value;
+  f->eax = (uint32_t)return_value;
+  thread_exit();
+}
+
+void
+thread_file_list_inster(struct file_handle* fh){
+  list_push_back(&file_list, &(fh->elem));
+}
+
+/* Get the file_handle pointer according to fd
+ * Return NULL if fd is invalid
+ * */
+struct file_handle* syscall_get_file_handle(int fd){
+  struct thread* cur =  thread_current();
+  struct list_elem* i;
+  for (i = list_begin(&file_list); i != list_end(&file_list); i = list_next(i)){
+    struct file_handle* t;
+    t = list_entry(i, struct file_handle, elem);
+    if (t->fd == fd){
+      if (t->owned_thread != cur)
+        return NULL;
+      else
+        return t;
+    }
+  }
+  return NULL;
+}
+/* Implementation by ypm Ended */
+#endif

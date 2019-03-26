@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
+#include <threads/thread.h>
+#include <stdio.h>
 #include "threads/init.h"
 #include "threads/pte.h"
 #include "threads/palloc.h"
@@ -128,6 +130,7 @@ pagedir_get_page (uint32_t *pd, const void *uaddr)
   uint32_t *pte;
 
   ASSERT (is_user_vaddr (uaddr));
+  ASSERT (uaddr != NULL);
   
   pte = lookup_page (pd, uaddr, false);
   if (pte != NULL && (*pte & PTE_P) != 0)
@@ -261,3 +264,58 @@ invalidate_pagedir (uint32_t *pd)
       pagedir_activate (pd);
     } 
 }
+
+/* Implementation by ypm Started */
+
+// Check whether the addres of a string is valid for user program
+// The length of string must be less than 4096 (included '\0)
+bool
+pagedir_check_user_string(const char *ustr){
+  char *kstr = pagedir_translate_vaddr(ustr);
+  if (kstr == NULL)
+    return false;
+  int cnt = 0;
+  while(*kstr != '\0'){
+    if(cnt == 4095){
+      puts("String to long, please make sure it is no longer than 4096 Bytes!\n");
+      return false;
+    }
+    cnt++;
+    kstr++;
+    if (((int)kstr & PTE_FLAGS) == 0){
+      ustr += cnt;
+      kstr = pagedir_translate_vaddr(ustr);
+      if (kstr == NULL)
+        return false;
+    }
+  }
+  return true;
+}
+
+// Check whether the address of a buffer is valid
+// The buffer start from ustr and the its length is size.
+bool
+syscall_check_user_buffer(const char* ustr, int size){
+  if (pagedir_translate_vaddr(ustr + size - 1) == NULL)
+    return false;
+
+  size >>= 12;
+  do{
+    if (pagedir_translate_vaddr(ustr) == NULL)
+      return false;
+    ustr += 1 << 12;
+  }while(size--);
+  return true;
+}
+
+/* Transfer user Vaddr to kernel vaddr
+ * Return NULL if user Vaddr is invalid
+ * */
+void*
+pagedir_translate_vaddr(const void *vaddr){
+  if (vaddr == NULL || !is_user_vaddr(vaddr))
+    return NULL;
+  return pagedir_get_page(thread_current()->pagedir, vaddr);
+}
+
+/* Implementation by ypm Ended */
