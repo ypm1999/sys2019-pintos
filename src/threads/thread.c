@@ -5,6 +5,8 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include <filesys/filesys.h>
+#include "filesys/file.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -14,10 +16,7 @@
 #include "threads/vaddr.h"
 
 #ifdef USERPROG
-
 #include "userprog/process.h"
-#include "filesys/filesys.h"
-#include "filesys/file.h"
 #include "malloc.h"
 
 #endif
@@ -90,8 +89,6 @@ void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
 /* Implementation by Wang Started */
-
-/* Get the child-message of thread tid from the global child list. */
 struct child_message *thread_get_child_message(tid_t tid)
 {
   struct list_elem *e;
@@ -167,9 +164,7 @@ thread_init (void)
   list_init (&children);
 
   /* Implementation by ypm Started */
-  #ifdef USERPROG
   list_init(&file_list);
-  #endif
   /* Implementation by ypm Ended */
 
   /* Set up a thread structure for the running thread. */
@@ -266,10 +261,9 @@ thread_create (const char *name, int priority,
   tid = t->tid = allocate_tid ();
 
   /* Implementation by Wang Started */
-#ifdef USERPROG
   struct child_message *own = palloc_get_page (PAL_ZERO);
   own->tid = tid;
-  own->waited = false;
+  own->tchild = t;
   own->exited = false;
   own->terminated = false;
   own->load_failed = false;
@@ -278,7 +272,6 @@ thread_create (const char *name, int priority,
   own->sema_started = &t->sema_started;
   list_push_back (&children, &own->allelem);
   t->message_to_grandpa = own;
-#endif
   /* Implementation by Wang Ended */
 
   /* Stack frame for kernel_thread(). */
@@ -396,7 +389,7 @@ thread_exit (void)
   process_exit ();
 
   /* Implementation by Wang Started */
-  sema_up_without_revolt (&thread_current ()->sema_finished);
+  sema_up (&thread_current ()->sema_finished);
   /* Implementation by Wang Ended */
 
   /* Implementation by ypm Started */
@@ -407,6 +400,7 @@ thread_exit (void)
       struct file_handle* hd;
       hd = list_entry(i, struct file_handle, elem);
       if (hd->owned_thread == cur){
+        file_close(hd->opened_file);
         i = list_prev(i);
         list_remove(&(hd->elem));
         free(hd);
@@ -433,7 +427,6 @@ thread_exit (void)
 
 /* Yields the CPU.  The current thread is not put to sleep and
    may be scheduled again immediately at the scheduler's whim. */
-int cnt1 = 0;
 void
 thread_yield (void)
 {
@@ -726,17 +719,16 @@ init_thread (struct thread *t, const char *name, int priority)
   t->max_donate = 0;
   t->father = NULL;
 
-#ifdef USERPROG
   /* Implementation by Chen Started */
   t->return_value = 0;
   /* Implementation by Chen Ended */
 
   /* Implementation by Wang Started */
+  t->grandpa_died = false;
   list_init (&t->child_list);
   sema_init (&t->sema_finished, 0);
   sema_init (&t->sema_started, 0);
   /* Implementation by Wang Ended */
-#endif
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
@@ -802,6 +794,7 @@ thread_schedule_tail (struct thread *prev)
 #ifdef USERPROG
   /* Activate the new address space. */
   process_activate ();
+
 #endif
 
   /* If the thread we switched from is dying, destroy its struct
@@ -857,7 +850,6 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
-#ifdef USERPROG
 /* Implementation by ypm Started */
 /* Terminate thread with a return value FINAL_VALUE */
 void
@@ -891,5 +883,6 @@ struct file_handle* syscall_get_file_handle(int fd){
   }
   return NULL;
 }
+
+
 /* Implementation by ypm Ended */
-#endif

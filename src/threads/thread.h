@@ -28,13 +28,14 @@ typedef int tid_t;
 #define PRI_MAX 63                      /* Highest priority. */
 
 /* Implementation by Wang Started */
-/* Message about how a child thread terminates. */
+struct thread;
+
 struct child_message
 {
+    struct thread *tchild;              /* Thread pointer to the child. */
     tid_t tid;                          /* Thread ID. */
     bool exited;                        /* If syscall exit() is called. */
     bool terminated;                    /* If the child finishes running. */
-    bool waited;                        /* If the child has been waited. */
     bool load_failed;                   /* If the child has a load fail. */
     int return_value;                   /* Return value. */
     struct semaphore *sema_finished;    /* Semaphore to finish. */
@@ -124,23 +125,23 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-#ifdef USERPROG
-    /* Owned by userprog/process.c. */
-    uint32_t *pagedir;                  /* Page directory. */
-
     /* Implementation by Chen Started */
     int return_value;                   /* Return value of the thread (anyway, nobody cares)*/
     /* Implementation by Chen Ended*/
 
     /* Implementation by Wang Started */
-    /* Implementation by Wang Started */
     struct list child_list;             /* Child List. */
     struct semaphore sema_finished;     /* Semaphore to finish. */
     struct semaphore sema_started;      /* Semaphore to finish loading. */
+    bool grandpa_died;                  /* Grandpa is dead or not. */
     struct child_message *message_to_grandpa;
                                         /* Child message for grandpa. */
     /* Implementation by Wang Ended */
-    /* Implementation by Wang Ended */
+
+
+#ifdef USERPROG
+    /* Owned by userprog/process.c. */
+    uint32_t *pagedir;                  /* Page directory. */
 
     /* Implementation by ypm Started */
     struct file* exec_file;
@@ -152,7 +153,6 @@ struct thread
 
 };
 
-#ifdef USERPROG
 /* Implementation by ypm Started */
 struct file_handle{
     int fd;
@@ -160,12 +160,12 @@ struct file_handle{
     struct thread* owned_thread;
     struct list_elem elem;
 };
+
 /* Implementation by ypm Ended */
 
 /* Implementation by Wang Started */
 struct child_message *thread_get_child_message(tid_t tid);
 /* Implementation by Wang Ended */
-#endif
 
 
 /* If false (default), use round-robin scheduler.
@@ -218,13 +218,10 @@ void thread_add_recent_cpu(void);
 
 /* Implementation by ypm Started */
 void thread_timer(bool);
-
-#ifdef USERPROG
 void thread_exit_with_return_value(struct intr_frame *f, int return_value);
+
 void thread_file_list_inster(struct file_handle* fh);
 struct file_handle* syscall_get_file_handle(int fd);
-#endif
-
 /* Implementation by ypm Ended */
 
 #endif /* threads/thread.h */

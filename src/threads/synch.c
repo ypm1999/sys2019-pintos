@@ -153,56 +153,6 @@ sema_up (struct semaphore *sema)
   intr_set_level (old_level);
 }
 
-
-/* Implementation by Wang Started */
-void
-sema_up_without_revolt (struct semaphore *sema)
-{
-  enum intr_level old_level;
-
-  ASSERT (sema != NULL);
-  sema->value++;
-  old_level = intr_disable ();
-
-  if (!list_empty (&sema->waiters))
-    {
-      //Pop the thread with the max priority.
-      struct thread *t = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
-      int max = thread_get_certain_priority (t);
-      struct thread *t_max = t;
-      list_push_back (&sema->waiters, &t->elem);
-      struct thread *t_tmp;
-      int tmp;
-      while (true)
-        {
-          t_tmp = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
-          list_push_back (&sema->waiters, &t_tmp->elem);
-          if (t_tmp == t)
-            break;
-          tmp = thread_get_certain_priority (t_tmp);
-          if (tmp > max)
-            {
-              max = tmp;
-              t_max = t_tmp;
-            }
-        }
-      while (true)
-        {
-          t_tmp = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
-          if (t_tmp == t_max)
-            break;
-          list_push_back (&sema->waiters, &t_tmp->elem);
-        }
-      thread_unblock (t_tmp);
-      //thread_revolt ();
-    }
-
-
-  intr_set_level (old_level);
-}
-/* Implementation by Wang Ended */
-
-
 static void sema_test_helper (void *sema_);
 
 /* Self-test for semaphores that makes control "ping-pong"

@@ -267,8 +267,6 @@ invalidate_pagedir (uint32_t *pd)
 
 /* Implementation by ypm Started */
 
-// Check whether the addres of a string is valid for user program
-// The length of string must be less than 4096 (included '\0)
 bool
 pagedir_check_user_string(const char *ustr){
   char *kstr = pagedir_translate_vaddr(ustr);
@@ -292,8 +290,6 @@ pagedir_check_user_string(const char *ustr){
   return true;
 }
 
-// Check whether the address of a buffer is valid
-// The buffer start from ustr and the its length is size.
 bool
 syscall_check_user_buffer(const char* ustr, int size){
   if (pagedir_translate_vaddr(ustr + size - 1) == NULL)

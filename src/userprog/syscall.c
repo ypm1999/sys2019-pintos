@@ -1,5 +1,5 @@
-#include "userprog/syscall.h"
 #include <stdio.h>
+#include "userprog/syscall.h"
 #include <syscall-nr.h>
 #include <devices/input.h>
 #include <filesys/filesys.h>
@@ -9,10 +9,10 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "pagedir.h"
 #include "devices/shutdown.h"
 #include "lib/user/syscall.h"
 #include "process.h"
-#include "pagedir.h"
 
 static void syscall_handler (struct intr_frame *);
 /* Implementation by ypm Started */
@@ -31,6 +31,8 @@ static void syscall_tell (struct intr_frame *f, int fd);
 static void syscall_close (struct intr_frame *f, int fd);
 /* Implementation by ypm Ended */
 
+
+
 void
 syscall_init (void)
 {
@@ -40,22 +42,14 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED)
 {
-  /* Old implementation
-   * printf ("system call!\n");
-   * thread_exit();
-   */
 
   /* Implementation by ypm Started */
-
-  // Check whether the address of syscall code is valid
   if (!syscall_check_user_buffer(f->esp, 4))
     thread_exit_with_return_value(f, -1);
 
-  // Get syscall code
   int call_num = *((int *) f->esp);
   void *arg1 = f->esp + 4, *arg2 = f->esp + 8, *arg3 = f->esp + 12;
 
-  // Check whether the address of args is valid
   switch (call_num){
     case SYS_EXIT:
     case SYS_EXEC:
@@ -84,7 +78,6 @@ syscall_handler (struct intr_frame *f UNUSED)
     default: break;
   }
 
-  // Deal with all kinds of syscall
   switch (call_num)
     {
       case SYS_HALT:
@@ -139,7 +132,6 @@ syscall_handler (struct intr_frame *f UNUSED)
         syscall_write (f, *((int *) arg1), *((void **) arg2), *((unsigned *) arg3));
         break;
 
-      //Syscall code is invalid, terminate the running thread
       default:
         thread_exit_with_return_value(f, -1);
     }
@@ -175,31 +167,37 @@ syscall_wait (struct intr_frame *f, pid_t pid)
 {
   f->eax = (uint32_t)process_wait (pid);
 }
+
 /* Implementation by Wang Ended */
 
 
 
 /* Implementation by ypm Started */
 
-// Shutdown the system
+
+
 static void
 syscall_halt(struct intr_frame *f){
   shutdown_power_off();
 }
 
-
-// Exit the running thread with return value
 static void
 syscall_exit(struct intr_frame *f, const int return_value){
+
   /* Implementation by Wang Started */
-  thread_current ()->message_to_grandpa->exited = true;
-  thread_current ()->message_to_grandpa->return_value = return_value;
+  struct thread *cur = thread_current ();
+  if (!cur->grandpa_died)
+    {
+      cur->message_to_grandpa->exited = true;
+      cur->message_to_grandpa->return_value = return_value;
+    }
   /* Implementation by Wang Ended */
+
   thread_exit_with_return_value(f, return_value);
 }
 
 
-// Open a file, and add it's file_handle to opened_file_list
+
 static void
 syscall_open(struct intr_frame *f, const char* name){
   if (!pagedir_check_user_string(name))
@@ -221,7 +219,6 @@ syscall_open(struct intr_frame *f, const char* name){
   f->eax = (uint32_t)handle->fd;
 }
 
-// Create a new file on disk
 static void
 syscall_create(struct intr_frame *f, const char * name, unsigned initial_size){
   if (!pagedir_check_user_string(name))
@@ -230,8 +227,6 @@ syscall_create(struct intr_frame *f, const char * name, unsigned initial_size){
   f->eax = (uint32_t)filesys_create(name, initial_size);
 }
 
-// Remove a file on disk
-// Return a bool that means whether remove successfully
 static void
 syscall_remove(struct intr_frame *f, const char* name){
   if (!pagedir_check_user_string(name))
@@ -239,8 +234,6 @@ syscall_remove(struct intr_frame *f, const char* name){
   f->eax = (uint32_t)filesys_remove(name);
 }
 
-// Get file size accord a file_handle
-// if fd is invalid, the running thread will be terminated
 static void
 syscall_filesize(struct intr_frame *f, int fd){
   struct file_handle* t = syscall_get_file_handle(fd);
@@ -250,7 +243,6 @@ syscall_filesize(struct intr_frame *f, int fd){
     thread_exit_with_return_value(f, -1);
 }
 
-// Read some bytes from file to buffer
 static void
 syscall_read(struct intr_frame *f, int fd, const void* buffer, unsigned size){
   if (!syscall_check_user_buffer(buffer, size))
@@ -274,7 +266,6 @@ syscall_read(struct intr_frame *f, int fd, const void* buffer, unsigned size){
   }
 }
 
-// Write some bytes from buffer to file
 static void
 syscall_write(struct intr_frame *f, int fd, const void* buffer, unsigned size){
   if (!syscall_check_user_buffer(buffer, size))
@@ -313,7 +304,6 @@ syscall_tell(struct intr_frame *f, int fd){
     thread_exit_with_return_value(f, -1);
 }
 
-// close file && remove fd from file_list
 static void
 syscall_close(struct intr_frame *f, int fd){
   struct file_handle* t = syscall_get_file_handle(fd);

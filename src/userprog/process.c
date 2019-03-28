@@ -27,13 +27,19 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
    before process_execute() returns.  Returns the new process's
    thread id, or TID_ERROR if the thread cannot be created. */
 tid_t
-process_execute (const char *file_name)
+process_execute (const char *file_name_)
 {
+  /* Pudding by Chen Started */
+  char *file_name;
   char *fn_copy;
   tid_t tid;
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
+  file_name = palloc_get_page(0);
+  strlcpy (file_name, file_name_, PGSIZE);
+  /* Pudding by Chen Ended */
+
   fn_copy = palloc_get_page (0);
   if (fn_copy == NULL)
     return TID_ERROR;
@@ -47,14 +53,13 @@ process_execute (const char *file_name)
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy);
-
+  palloc_free_page(file_name); /* this is part of pudding */
   /* Implementation by Chen ended */
 
   /* Implementation by Wang Started */
   list_push_back (&thread_current ()->child_list,
                   &thread_get_child_message (tid)->elem);
   /* Implementation by Wang Ended */
-
 
   return tid;
 }
@@ -126,10 +131,9 @@ start_process (void *file_name_)
     thread_current ()->message_to_grandpa->return_value = -1;
     thread_current ()->return_value = -1;
   }
-  sema_up_without_revolt (thread_current ()->message_to_grandpa->sema_started);
+  sema_up (thread_current ()->message_to_grandpa->sema_started);
   if (!success)
     thread_exit ();
-
 
 
   /* Start the user process by simulating a return from an
@@ -164,15 +168,15 @@ process_wait (tid_t child_tid UNUSED)
     l = list_entry (e, struct child_message, elem);
     if (l->tid == child_tid)
     {
-      if (l->waited)
-        return -1;
-      l->waited = true;
       if (!l->terminated)
       {
         sema_down (l->sema_finished);
       }
-
-      return l->exited ? l->return_value : -1;
+      int ret = l->exited ? l->return_value : -1;
+      list_remove (e);
+      list_remove (&l->allelem);
+      palloc_free_page (l);
+      return ret;
     }
   }
   /* Implementation by Wang Ended */
@@ -186,6 +190,18 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+
+  /* Implementation by Wang Started */
+  struct list_elem *e;
+  struct child_message *l;
+  while (!list_empty (&cur->child_list))
+    {
+      l = list_entry (list_pop_front (&cur->child_list), struct child_message, elem);
+      list_remove (&l->allelem);
+      l->tchild->grandpa_died = true;
+      palloc_free_page (l);
+    }
+  /* Implementation by Wang Ended */
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -209,7 +225,8 @@ process_exit (void)
   }
 
   /* Implementation by Wang Started */
-  cur->message_to_grandpa->terminated = true;
+  if (!cur->grandpa_died)
+    cur->message_to_grandpa->terminated = true;
   /* Implementation by Wang Ended */
 
 }
@@ -318,10 +335,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (t->pagedir == NULL)
     goto done;
   process_activate ();
-//printf("tryload-%s\n", file_name);
+
   /* Open executable file. */
   file = filesys_open (file_name);
-  //printf("tryend-%s\n", file_name);
   if (file == NULL)
   {
     printf ("load: %s: open failed\n", file_name);

@@ -136,13 +136,8 @@ page_fault (struct intr_frame *f)
      [IA32-v3a] 5.15 "Interrupt 14--Page Fault Exception
      (#PF)". */
   asm ("movl %%cr2, %0" : "=r" (fault_addr));
-  /* Implementation by ypm Started */
-  // If user program trig a page fault because an access to an invalid address
-  // The thread will be terminated and return -1
   if (pagedir_translate_vaddr(fault_addr) == NULL)
     thread_exit_with_return_value(f, -1);
-  /* Implementation by ypm Ended */
-
 
   /* Turn interrupts back on (they were only off so that we could
      be assured of reading CR2 before it changed). */

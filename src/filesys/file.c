@@ -1,5 +1,6 @@
 #include "filesys/file.h"
 #include <debug.h>
+#include <lib/stdio.h>
 #include "filesys/inode.h"
 #include "threads/malloc.h"
 
@@ -14,9 +15,11 @@ struct file
 /* Opens a file for the given INODE, of which it takes ownership,
    and returns the new file.  Returns a null pointer if an
    allocation fails or if INODE is null. */
+int ccc = 0;
 struct file *
 file_open (struct inode *inode) 
 {
+  //++ccc;printf("****ccc=%d\n", ccc);
   struct file *file = calloc (1, sizeof *file);
   if (inode != NULL && file != NULL)
     {
@@ -45,6 +48,7 @@ file_reopen (struct file *file)
 void
 file_close (struct file *file) 
 {
+  //--ccc;printf("****ccc=%d\n", ccc);
   if (file != NULL)
     {
       file_allow_write (file);
