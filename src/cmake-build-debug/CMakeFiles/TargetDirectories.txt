@@ -1,2 +1,3 @@
-/home/chen/pintos/src/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/chen/pintos/src/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/sjtu-ypm/system/mypintos/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/sjtu-ypm/system/mypintos/cmake-build-debug/CMakeFiles/mypintos.dir
+/home/sjtu-ypm/system/mypintos/cmake-build-debug/CMakeFiles/edit_cache.dir

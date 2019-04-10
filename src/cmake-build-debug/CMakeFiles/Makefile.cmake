@@ -7,29 +7,25 @@ set(CMAKE_DEPENDS_GENERATOR "Unix Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeCInformation.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeCXXInformation.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeCommonLanguageInclude.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeExtraGeneratorDetermineCompilerMacrosAndIncludeDirs.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeFindCodeBlocks.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeGenericSystem.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeInitializeConfigs.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeLanguageInformation.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeSystemSpecificInformation.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/CMakeSystemSpecificInitialize.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/GNU-C.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/GNU-CXX.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/GNU.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux-GNU-C.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux-GNU-CXX.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux-GNU.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/Platform/UnixPaths.cmake"
-  "/home/chen/Downloads/clion-2018.3.4/bin/cmake/linux/share/cmake-3.13/Modules/ProcessorCount.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeCInformation.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeCommonLanguageInclude.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeExtraGeneratorDetermineCompilerMacrosAndIncludeDirs.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeFindCodeBlocks.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeGenericSystem.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeInitializeConfigs.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeLanguageInformation.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeSystemSpecificInformation.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/CMakeSystemSpecificInitialize.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/GNU-C.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Compiler/GNU.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux-GNU-C.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux-GNU.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Platform/Linux.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/Platform/UnixPaths.cmake"
+  "/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/share/cmake-3.13/Modules/ProcessorCount.cmake"
   "../CMakeLists.txt"
   "CMakeFiles/3.13.2/CMakeCCompiler.cmake"
-  "CMakeFiles/3.13.2/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.13.2/CMakeSystem.cmake"
   )
 
@@ -46,4 +42,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/mypintos.dir/DependInfo.cmake"
   )

@@ -1,1 +1,4 @@
-CMakeLists.txt not found in /home/chen/pintos/src Select CMakeLists.txt file...
+/home/sjtu-ypm/Downloads/CLion/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/sjtu-ypm/system/mypintos
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/sjtu-ypm/system/mypintos/cmake-build-debug

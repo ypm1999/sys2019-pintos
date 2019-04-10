@@ -36,6 +36,7 @@ struct hash_elem
    name of the outer structure STRUCT and the member name MEMBER
    of the hash element.  See the big comment at the top of the
    file for an example. */
+
 #define hash_entry(HASH_ELEM, STRUCT, MEMBER)                   \
         ((STRUCT *) ((uint8_t *) &(HASH_ELEM)->list_elem        \
                      - offsetof (STRUCT, MEMBER.list_elem)))
@@ -65,6 +66,8 @@ struct hash
     hash_less_func *less;       /* Comparison function. */
     void *aux;                  /* Auxiliary data for `hash' and `less'. */
   };
+
+
 
 /* A hash table iterator. */
 struct hash_iterator 

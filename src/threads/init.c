@@ -28,6 +28,7 @@
 #include "userprog/gdt.h"
 #include "userprog/syscall.h"
 #include "userprog/tss.h"
+#include "vm/frame.h"
 #else
 #include "tests/threads/tests.h"
 #include "../devices/shutdown.h"
@@ -66,6 +67,10 @@ static char **read_command_line (void);
 static char **parse_options (char **argv);
 static void run_actions (char **argv);
 static void usage (void);
+
+#ifdef USERPROG
+extern void frame_init();
+#endif
 
 #ifdef FILESYS
 static void locate_block_devices (void);
@@ -115,6 +120,9 @@ pintos_init (void)
 #ifdef USERPROG
   exception_init ();
   syscall_init ();
+  /* Implementation by ypm Started */
+  frame_init();
+  /* Implementation by ypm Ended */
 #endif
 
   /* Start thread scheduler and enable interrupts. */
