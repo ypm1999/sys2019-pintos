@@ -567,7 +567,7 @@ setup_stack (void **esp)
   }
    /* Implementation by ypm Started */
    if (success)
-     frame_set_pinned(kpage, false);
+     frame_set_pinned_false(kpage);
    /* Implementation by ypm Ended */
 
   return success;
