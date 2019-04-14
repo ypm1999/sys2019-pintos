@@ -23,7 +23,7 @@ void  frame_free_frame(void *frame);
 
 //get pinned accord to frame
 //if a page is pinned, it won't be swaped to the disk
-bool  frame_get_pinned(void* frame);
+bool  frame_get_pinned(void *frame);
 
 // set frame pinned to new_value
 // return whether the set_pinned success

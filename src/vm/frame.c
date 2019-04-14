@@ -25,7 +25,7 @@ struct list frame_clock_list;
 struct frame_item* current_frame;
 
 void *frame_lookup(void *frame);
-void* frame_get_used_frame();
+void *frame_get_used_frame();
 void frame_current_clock_to_next();
 void frame_current_clock_to_prev();
 
@@ -34,7 +34,7 @@ bool frame_hash_less(const struct hash_elem *a,
                      const struct hash_elem *b,
                      void *aux UNUSED);
 unsigned frame_hash(const struct hash_elem *e,
-                    void* aux UNUSED);
+                    void *aux UNUSED);
 
 
 void frame_init(){
