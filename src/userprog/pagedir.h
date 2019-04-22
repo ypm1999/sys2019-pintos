@@ -15,10 +15,6 @@ bool pagedir_is_accessed (uint32_t *pd, const void *upage);
 void pagedir_set_accessed (uint32_t *pd, const void *upage, bool accessed);
 void pagedir_activate (uint32_t *pd);
 
-/* Implementation by ypm Started */
-void *pagedir_translate_vaddr(const void *vaddr);
-bool pagedir_check_user_string(const char *str);
-bool syscall_check_user_buffer (const char *str, int size);
-/* Implementation by ypm Ended */
+
 
 #endif /* userprog/pagedir.h */

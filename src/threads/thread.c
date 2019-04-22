@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <filesys/filesys.h>
+#ifdef VM
+#include <vm/page.h>
+#include <userprog/syscall.h>
+#endif
 #include "filesys/file.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
@@ -205,7 +209,7 @@ thread_tick (void)
   if (t == idle_thread)
     idle_ticks++;
 #ifdef USERPROG
-  else if (t->pagedir != NULL)
+    else if (t->pagedir != NULL)
     user_ticks++;
 #endif
   else
@@ -291,13 +295,7 @@ thread_create (const char *name, int priority,
 
   /* Implementation by ypm Started */
 #ifdef USERPROG
-  if (tid > 2){
-    t->exec_file = filesys_open(name);
-    if (t->exec_file != NULL)
-      file_deny_write(t->exec_file);
-  }
-  else
-    t->exec_file = NULL;
+  t->exec_file = NULL;
 #endif
   /* Implementation by ypm Ended */
 
@@ -400,7 +398,7 @@ thread_exit (void)
       struct file_handle* hd;
       hd = list_entry(i, struct file_handle, elem);
       if (hd->owned_thread == cur){
-        file_close(hd->opened_file);
+        syscall_file_close(hd->opened_file);
         i = list_prev(i);
         list_remove(&(hd->elem));
         free(hd);
@@ -408,8 +406,7 @@ thread_exit (void)
     }
   }
   if(cur->exec_file != NULL){
-    file_allow_write(cur->exec_file);
-    file_close(cur->exec_file);
+    syscall_file_close(cur->exec_file);
   }
   /* Implementation by ypm Ended */
 
@@ -729,7 +726,12 @@ init_thread (struct thread *t, const char *name, int priority)
   sema_init (&t->sema_finished, 0);
   sema_init (&t->sema_started, 0);
   /* Implementation by Wang Ended */
-
+#ifdef VM
+  /* Implementation by ymt Started */
+  list_init(&t->mmap_file_list);
+  t->next_mapid = 1;
+  /* Implementation by ymt Ended */
+#endif
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);

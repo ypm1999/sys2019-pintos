@@ -5,8 +5,10 @@
 #include <list.h>
 #include <stdint.h>
 #include "synch.h"
+#include "../lib/kernel/hash.h"
 #include "threads/real-number.h"
 #include "threads/interrupt.h"
+#include "filesys/off_t.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -20,6 +22,11 @@ enum thread_status
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
 typedef int tid_t;
+
+/* Implementation by ymt Started */
+typedef int mapid_t;
+/* Implementation by ymt Ended */
+
 #define TID_ERROR ((tid_t) -1)          /* Error value for tid_t. */
 
 /* Thread priorities. */
@@ -135,7 +142,7 @@ struct thread
     struct semaphore sema_started;      /* Semaphore to finish loading. */
     bool grandpa_died;                  /* Grandpa is dead or not. */
     struct child_message *message_to_grandpa;
-                                        /* Child message for grandpa. */
+    /* Child message for grandpa. */
     /* Implementation by Wang Ended */
 
 
@@ -146,6 +153,16 @@ struct thread
     /* Implementation by ypm Started */
     struct file* exec_file;
     /* Implementation by ypm Ended */
+#endif
+#ifdef VM
+    /* Implementation by Chen Started */
+	struct hash* page_table;
+    void *esp;
+    /* Implementation by Chen ended */
+    /* Implementation by ymt Started */
+    struct list mmap_file_list;
+    mapid_t next_mapid;
+    /* Implementation by ymt Ended */
 #endif
 
     /* Owned by thread.c. */
@@ -160,8 +177,23 @@ struct file_handle{
     struct thread* owned_thread;
     struct list_elem elem;
 };
-
 /* Implementation by ypm Ended */
+
+/* Implementation by ymt Started */
+struct mmap_handler{
+    mapid_t mapid; // mmap 唯一标识符
+    struct file* mmap_file; // mmap 的文件
+    void* mmap_addr; // mmap的目标 vaddr
+    int num_page; // mmap 的文件占用多少page
+    int last_page_size; // 0表示filesize和pagesize对齐, 非0表示最后一页实际用的大小
+    struct list_elem elem;
+    bool writable;
+    bool is_segment; // is used in load_segment
+    bool is_static_data; // whether it is from static data;
+    int num_page_with_segment; // total pages with zeros bytes
+    off_t file_ofs;
+};
+/* Implementation by ymt Ended */
 
 /* Implementation by Wang Started */
 struct child_message *thread_get_child_message(tid_t tid);
@@ -195,7 +227,7 @@ tid_t thread_tid (void);
 const char *thread_name (void);
 
 void thread_exit (void) NO_RETURN;
-void thread_yield (void);
+                        void thread_yield (void);
 
 /* Performs some operation on thread t, given auxiliary data AUX. */
 typedef void thread_action_func (struct thread *t, void *aux);

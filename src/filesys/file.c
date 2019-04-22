@@ -46,7 +46,6 @@ file_reopen (struct file *file)
 void
 file_close (struct file *file) 
 {
-  //--ccc;printf("****ccc=%d\n", ccc);
   if (file != NULL)
     {
       file_allow_write (file);

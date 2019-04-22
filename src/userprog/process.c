@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vm/frame.h>
 #include "userprog/gdt.h"
 #include "userprog/pagedir.h"
 #include "userprog/tss.h"
@@ -18,6 +17,12 @@
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#ifdef VM
+#include "threads/malloc.h"
+#include <vm/frame.h>
+#include "vm/page.h"
+#include "syscall.h"
+#endif
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
@@ -192,17 +197,40 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
 
+#ifdef VM
+  /* Implementation by ymt Started */
+  struct list* mmap_list = &cur->mmap_file_list;
+  if (!list_empty(mmap_list))
+  {
+    struct mmap_handler* mh;
+    while (!list_empty(mmap_list))
+    {
+      mh = list_entry(list_pop_front (mmap_list), struct mmap_handler, elem);
+      for (int i = 0; i < mh->num_page_with_segment; i++)
+      {
+        page_unmap(cur->page_table, mh->mmap_addr + i * PGSIZE);
+      }
+      delete_mmap_handle(mh);
+    }
+  }
+  /* Implementation by ymt Ended */
+#endif
   /* Implementation by Wang Started */
   struct list_elem *e;
   struct child_message *l;
   while (!list_empty (&cur->child_list))
-    {
-      l = list_entry (list_pop_front (&cur->child_list), struct child_message, elem);
-      list_remove (&l->allelem);
-      l->tchild->grandpa_died = true;
-      palloc_free_page (l);
-    }
+  {
+    l = list_entry (list_pop_front (&cur->child_list), struct child_message, elem);
+    list_remove (&l->allelem);
+    l->tchild->grandpa_died = true;
+    palloc_free_page (l);
+  }
   /* Implementation by Wang Ended */
+#ifdef VM
+  /* Implementation by Chen Started */
+  page_destroy(cur->page_table);
+  /* Implementation by Chen Ended */
+#endif
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -331,6 +359,13 @@ load (const char *file_name, void (**eip) (void), void **esp)
   bool success = false;
   int i;
 
+#ifdef VM
+  /* Implementation by Chen Started */
+  t->page_table = page_create();
+  if(t->page_table == NULL)
+  	goto done;
+/* Implementation by Chen ended */
+#endif
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
   if (t->pagedir == NULL)
@@ -428,7 +463,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   done:
   /* We arrive here whether the load is successful or not. */
-  file_close (file);
+  if (success)
+  {
+    t->exec_file = file;
+    file_deny_write(file);
+  }
   return success;
 }
 
@@ -503,6 +542,9 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
   ASSERT (pg_ofs (upage) == 0);
   ASSERT (ofs % PGSIZE == 0);
 
+#ifdef VM
+  return mmap_load_segment(file, ofs, upage, read_bytes, zero_bytes, writable);
+#else
   file_seek (file, ofs);
   while (read_bytes > 0 || zero_bytes > 0)
   {
@@ -513,19 +555,14 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
     size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
     /* Get a page of memory. */
-//    uint8_t *kpage = palloc_get_page (PAL_USER);
-
-/* Implementation by ypm Started */
-    uint8_t *kpage = frame_get_frame(PAL_USER, upage);
-/* Implementation by ypm Ended */
-
+    uint8_t *kpage = palloc_get_page (PAL_USER);
     if (kpage == NULL)
       return false;
 
     /* Load this page. */
     if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
     {
-      frame_free_frame(kpage);
+      palloc_free_page (kpage);
       return false;
     }
     memset (kpage + page_read_bytes, 0, page_zero_bytes);
@@ -533,7 +570,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
     /* Add the page to the process's address space. */
     if (!install_page (upage, kpage, writable))
     {
-      frame_free_frame(kpage);
+      palloc_free_page (kpage);
       return false;
     }
 
@@ -543,6 +580,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
     upage += PGSIZE;
   }
   return true;
+#endif
 }
 
 /* Create a minimal stack by mapping a zeroed page at the top of
@@ -552,24 +590,32 @@ setup_stack (void **esp)
 {
   uint8_t *kpage;
   bool success = false;
-  //kpage = palloc_get_page (PAL_USER | PAL_ZERO);
+
+#ifdef VM
   /* Implementation by ypm Started */
   kpage = frame_get_frame(PAL_USER | PAL_ZERO, ((uint8_t *) PHYS_BASE) - PGSIZE);
   /* Implementation by ypm Ended */
-
+#else
+  kpage = palloc_get_page (PAL_USER | PAL_ZERO);
+#endif
   if (kpage != NULL)
   {
     success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
     if (success)
       *esp = PHYS_BASE;
     else
+#ifdef VM
       frame_free_frame(kpage);
+#else
+      palloc_free_page (kpage);
+#endif
   }
-   /* Implementation by ypm Started */
+#ifdef VM
+  /* Implementation by ypm Started */
    if (success)
      frame_set_pinned_false(kpage);
    /* Implementation by ypm Ended */
-
+#endif
   return success;
 }
 
@@ -585,10 +631,67 @@ setup_stack (void **esp)
 static bool
 install_page (void *upage, void *kpage, bool writable)
 {
+  /* Verify that there's not already a page at that virtual
+     address, then map our page there. */
+#ifdef VM
+  return page_set_frame(upage, kpage, writable);
+#else
   struct thread *t = thread_current ();
 
   /* Verify that there's not already a page at that virtual
      address, then map our page there. */
   return (pagedir_get_page (t->pagedir, upage) == NULL
           && pagedir_set_page (t->pagedir, upage, kpage, writable));
+#endif
 }
+
+
+/* Implementation by ymt Started */
+
+struct mmap_handler*
+syscall_get_mmap_handle(mapid_t mapid)
+{
+#ifdef VM
+  struct thread* cur = thread_current();
+  struct list_elem *i;
+  struct mmap_handler *mh;
+  if (!list_empty(&cur->mmap_file_list))
+  {
+    for(i = list_begin(&cur->mmap_file_list); i != list_end(&cur->mmap_file_list); i = list_next(i))
+    {
+      mh = list_entry(i, struct mmap_handler, elem);
+      if (mh->mapid == mapid)
+        return mh;
+    }
+  }
+  return NULL;
+#endif
+}
+
+bool
+delete_mmap_handle(struct mmap_handler *mh)
+{
+#ifdef VM
+  struct thread* cur = thread_current();
+  struct list_elem *i;
+  struct mmap_handler *tmp_mh;
+  if (!list_empty(&cur->mmap_file_list))
+  {
+    for(i = list_begin(&cur->mmap_file_list); i != list_end(&cur->mmap_file_list); i = list_next(i))
+    {
+      tmp_mh = list_entry(i, struct mmap_handler, elem);
+      if (tmp_mh == mh)
+      {
+        list_remove(i);
+        syscall_file_close(mh->mmap_file);
+        free(mh);
+        return true;
+      }
+    }
+  }
+  return false;
+#endif
+}
+
+/* Implementation by ymt Ended */
+

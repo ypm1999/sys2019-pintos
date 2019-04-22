@@ -4,10 +4,10 @@
 #include <string.h>
 #include <threads/thread.h>
 #include <stdio.h>
+#include <vm/page.h>
 #include "threads/init.h"
 #include "threads/pte.h"
 #include "threads/palloc.h"
-#include "vm/frame.h"
 
 
 static uint32_t *active_pd (void);
@@ -38,36 +38,18 @@ pagedir_destroy (uint32_t *pd)
 
   ASSERT (pd != init_page_dir);
 
-//  for (pde = pd; pde < pd + pd_no (PHYS_BASE); pde++)
-//    if (*pde & PTE_P)
-//      {
-//        uint32_t *pt = pde_get_pt (*pde);
-//        uint32_t *pte;
-//
-//        for (pte = pt; pte < pt + PGSIZE / sizeof *pte; pte++)
-//          if (*pte & PTE_P)
-//            palloc_free_page (pte_get_page (*pte));
-//        palloc_free_page (pt);
-//      }
-//  palloc_free_page (pd);
-
-  /* Implementation by ypm Started */
   for (pde = pd; pde < pd + pd_no (PHYS_BASE); pde++)
     if (*pde & PTE_P)
-    {
-      uint32_t *pt = pde_get_pt (*pde);
-      uint32_t *pte;
+      {
+        uint32_t *pt = pde_get_pt (*pde);
+        uint32_t *pte;
 
-      for (pte = pt; pte < pt + PGSIZE / sizeof *pte; pte++)
-        if (*pte & PTE_P)
-          frame_free_frame(pte_get_page(*pte));
-      palloc_free_page (pt);
-    }
+        for (pte = pt; pte < pt + PGSIZE / sizeof *pte; pte++)
+          if (*pte & PTE_P)
+            palloc_free_page (pte_get_page (*pte));
+        palloc_free_page (pt);
+      }
   palloc_free_page (pd);
-
-  /* Implementation by ypm Ended */
-
-
 }
 
 /* Returns the address of the page table entry for virtual
@@ -122,7 +104,8 @@ bool
 pagedir_set_page (uint32_t *pd, void *upage, void *kpage, bool writable)
 {
   uint32_t *pte;
-
+//  static cnt = 0;
+//  printf("--%d ,%x, %x\n", cnt++, upage, kpage);
   ASSERT (pg_ofs (upage) == 0);
   ASSERT (pg_ofs (kpage) == 0);
   ASSERT (is_user_vaddr (upage));
@@ -286,53 +269,3 @@ invalidate_pagedir (uint32_t *pd)
     } 
 }
 
-/* Implementation by ypm Started */
-
-bool
-pagedir_check_user_string(const char *ustr){
-  char *kstr = pagedir_translate_vaddr(ustr);
-  if (kstr == NULL)
-    return false;
-  int cnt = 0;
-  while(*kstr != '\0'){
-    if(cnt == 4095){
-      puts("String to long, please make sure it is no longer than 4096 Bytes!\n");
-      return false;
-    }
-    cnt++;
-    kstr++;
-    if (((int)kstr & PTE_FLAGS) == 0){
-      ustr += cnt;
-      kstr = pagedir_translate_vaddr(ustr);
-      if (kstr == NULL)
-        return false;
-    }
-  }
-  return true;
-}
-
-bool
-syscall_check_user_buffer(const char* ustr, int size){
-  if (pagedir_translate_vaddr(ustr + size - 1) == NULL)
-    return false;
-
-  size >>= 12;
-  do{
-    if (pagedir_translate_vaddr(ustr) == NULL)
-      return false;
-    ustr += 1 << 12;
-  }while(size--);
-  return true;
-}
-
-/* Transfer user Vaddr to kernel vaddr
- * Return NULL if user Vaddr is invalid
- * */
-void*
-pagedir_translate_vaddr(const void *vaddr){
-  if (vaddr == NULL || !is_user_vaddr(vaddr))
-    return NULL;
-  return pagedir_get_page(thread_current()->pagedir, vaddr);
-}
-
-/* Implementation by ypm Ended */

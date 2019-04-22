@@ -3,16 +3,22 @@
 	Implementation: Supplemental Page Table
 */
 
-
+#include <stdio.h>
 #include "page.h"
 #include "frame.h"
 #include "swap.h"
 #include "../threads/thread.h"
 #include "../userprog/pagedir.h"
+#include "../userprog/syscall.h"
 #include "../lib/stddef.h"
 #include "../threads/malloc.h"
 #include "../lib/debug.h"
-#include "threads/vaddr.h"
+#include "../threads/vaddr.h"
+
+#define PAGE_PAL_FLAG			0
+#define PAGE_INST_MARGIN		32
+#define PAGE_STACK_SIZE			0x800000
+#define PAGE_STACK_UNDERLINE	(PHYS_BASE - PAGE_STACK_SIZE)
 
 bool page_hash_less(const struct hash_elem *lhs,
 					 const struct hash_elem *rhs,
@@ -24,34 +30,52 @@ unsigned page_hash(const struct hash_elem *e,
 void page_destroy_frame_likes(struct hash_elem *e,
 							void *aux UNUSED);
 
-bool page_stack_growth(struct hash *page_table,
-							void *used);
+static struct lock page_lock;
 
+void page_lock_init() {
+	lock_init(&page_lock);
+}
 /* basic life cycle */
-/* return whether page init is sucessful or not, btw, this function will create an inital virtual stack slot */
+page_table_t*
+page_create() {
+	page_table_t *t = malloc(sizeof(page_table_t));
+
+	if(t != NULL) {
+		if(page_init(t) == false) {
+			free(t);
+			return NULL;
+		}
+		else {
+			return t;
+		}
+	}
+	else {
+		return NULL;
+	}
+}
+/* return whether page init is successful or not, btw, this function will create an initial virtual stack slot */
 bool
-page_init(struct hash *page_table) {
-	hash_init(page_table, page_hash, page_hash_less, NULL);
-	
-	return page_stack_growth(page_table, PHYS_BASE);
+page_init(page_table_t *page_table) {
+	return hash_init(page_table, page_hash, page_hash_less, NULL);
 }
 
-/* destory page_table and recycle FRAME and SWAP slot */
+/* destroy page_table and recycle FRAME and SWAP slot */
 void
-page_destroy(struct hash *page_table) {
+page_destroy(page_table_t *page_table) {
+	lock_acquire(&page_lock);
 	hash_destroy(page_table, page_destroy_frame_likes);
+	lock_release(&page_lock);
 }
 
-/* find the element with key = vaddr in page table*/
+/* find the element with key = upage in page table*/
 struct page_table_elem*
-page_find(struct hash *page_table, void *vaddr) {
-	struct page_table_elem *tmp;
+page_find(page_table_t *page_table, void *upage) {
 	struct hash_elem *e;
+	struct page_table_elem tmp;
 
-	tmp = malloc(sizeof(*tmp));
-	tmp->key = vaddr;
-	e = hash_find(page_table, &(tmp->elem));
-	free(tmp);
+    ASSERT(page_table != NULL);
+	tmp.key = upage;
+	e = hash_find(page_table, &(tmp.elem));
 	
 	if(e != NULL) {
 		return hash_entry(e, struct page_table_elem, elem);
@@ -62,68 +86,248 @@ page_find(struct hash *page_table, void *vaddr) {
 }
 
 /* page fault handler of page table*/
-/* given a hash table and virtual address(page), allocate a frame for this page */
 
-void
-page_page_fault(struct hash *page_table, void *vaddr) {
-	struct page_table_elem *t = page_find(page_table, vaddr);
+/*
+	given a hash table and virtual address(page), allocate a frame for this page
+	return whether the dealt is successful or not.
+*/
+
+bool
+page_page_fault_handler(const void *vaddr, bool to_write, void *esp) {
+//	printf("page_falut--%08x %08x %08x\n", vaddr, esp, PAGE_STACK_UNDERLINE);
+	struct thread *cur = thread_current();
+	page_table_t *page_table = cur->page_table;
+	uint32_t *pagedir = cur->pagedir;
+	void *upage = pg_round_down(vaddr);
 	
-	if(t == NULL) {
-		ASSERT(false);
+	bool success = true;
+	lock_acquire(&page_lock);
+	
+	struct page_table_elem *t = page_find(page_table, upage);
+	void *dest = NULL;
+	
+	ASSERT(is_user_vaddr(vaddr));
+	ASSERT(!(t != NULL && t->status == FRAME));
+//	printf("vaddr:%p    esp:%p\n", vaddr, esp, PAGE_STACK_UNDERLINE);
+	if(to_write == true && t != NULL && t->writable == false) return false;
+		
+	if(upage >= PAGE_STACK_UNDERLINE) {
+		if(vaddr >= esp - PAGE_INST_MARGIN) {
+			if(t == NULL) {
+				dest = frame_get_frame(PAGE_PAL_FLAG, upage);
+				if(dest == NULL) {
+					success = false;
+				}
+				else {
+					t = malloc(sizeof(*t));
+					t->key = upage;
+					t->value = dest;
+					t->status = FRAME;
+					t->writable = true;
+					t->origin = NULL;
+					hash_insert(page_table, &t->elem);
+				}
+			}
+			else {
+				switch(t->status) {
+					case SWAP:
+						dest = frame_get_frame(PAGE_PAL_FLAG, upage);
+						if(dest == NULL) {
+							success = false;
+							break;
+						}
+						swap_load((index_t) t->value, dest);
+						t->value = dest;
+						t->status = FRAME;
+		  //            printf("swap :%d, %p->%p\n", cur->tid, t->key, t->value);
+						break;
+					default:
+/*
+						printf("fuck\n");
+						printf("status:%s\n", t->status == FILE ? "FILE" : "FRAME");
+*/
+						success = false;
+				}
+			}
+		}
+		else {
+			success = false;
+		}
 	}
 	else {
-		void *dest; /* a frame, the destination of our data to store*/
-		
+		if(t == NULL) {
+			success = false;
+		}
+		else {
+			switch(t->status) {
+				case SWAP:
+					dest = frame_get_frame(PAGE_PAL_FLAG, upage);
+					if(dest == NULL) {
+						success = false;
+						break;
+					}
+					swap_load((index_t)t->value, dest);
+					t->value = dest;
+					t->status = FRAME;
+//                    printf("swap to frame:%d, %p->%p\n", cur->tid, t->key, t->value);
+					break;
+				case FILE:
+					dest = frame_get_frame(PAGE_PAL_FLAG, upage);
+					if(dest == NULL) {
+						success = false;
+						break;
+					}
+					mmap_read_file(t->value, upage, dest);
+					t->value = dest;
+					t->status = FRAME;
+//                    printf("file to frame:%d, %p->%p\n", cur->tid, t->key, t->value);
+					break;
+				default:
+					success = false;
+			}
+		}
+	}
+	
+	frame_set_pinned_false(dest);
+	lock_release(&page_lock);
+	if(success) {
+		ASSERT(pagedir_set_page(pagedir, t->key, t->value, t->writable));
+	}
+	return success;
+}
+
+/* Verify that there's not already a page at that virtual
+ address, then map our page there. */
+bool page_set_frame(void *upage, void *kpage, bool wb) {
+	struct thread *cur = thread_current();
+	page_table_t *page_table = cur->page_table;
+	uint32_t *pagedir = cur->pagedir;
+
+	bool success = true;
+	lock_acquire(&page_lock);
+	
+	struct page_table_elem *t = page_find(page_table, upage);
+	if(t == NULL) {
+		t = malloc(sizeof(*t));
+		t->key = upage;
+		t->value = kpage;
+		t->status = FRAME;
+		t->origin = NULL;
+		t->writable = wb;
+		hash_insert(page_table, &t->elem);
+//    printf("stack %p->%p\n", t->key, t->value);
+	}
+	else {
+		success = false;
+	}
+	
+	lock_release(&page_lock);
+	
+	if(success) {
+		ASSERT(pagedir_set_page(pagedir, t->key, t->value, t->writable));
+	}
+	return success;
+}
+
+/* check if upage is below stack underline and available*/
+bool page_available_upage(page_table_t *page_table, void *upage) {
+	return upage < PAGE_STACK_UNDERLINE && page_find(page_table, upage) == NULL;
+}
+
+/* check if upage is accessible for a non-stack visit */
+bool page_accessible_upage(page_table_t *page_table, void *upage) {
+	return upage < PAGE_STACK_UNDERLINE && page_find(page_table, upage) != NULL;
+}
+
+/* install file to page_table */
+bool page_install_file(page_table_t *page_table, struct mmap_handler *mh, void *key) {
+	struct thread *cur = thread_current();
+	bool success = true;
+	lock_acquire(&page_lock);
+	if(page_available_upage(page_table, key)) {
+		struct page_table_elem *e = malloc(sizeof(*e));
+		e->key = key;
+		e->value = mh;
+		e->status = FILE;
+		e->writable = mh->writable;
+		e->origin = mh;
+		hash_insert(page_table, &e->elem);
+	}
+	else {
+		success = false;
+	}	
+	lock_release(&page_lock);
+	return success;
+}
+
+/* unmount a file */
+bool page_unmap(page_table_t *page_table, void *upage) {
+	struct thread *cur = thread_current();
+	bool success = true;
+	lock_acquire(&page_lock);
+	
+	if(page_accessible_upage(page_table, upage)) {
+		struct page_table_elem *t = page_find(page_table, upage);
+
+		ASSERT( t != NULL );
 		switch(t->status) {
-			case ZEROS:
-//				dest = frame_get_frame();
-				t->value = dest;
-				t->status = FRAME;
-				page_stack_growth(page_table, t->key);
+			case FILE:
+				hash_delete(page_table, &(t->elem));
+				free(t);
 				break;
 			case FRAME:
-				ASSERT(false);
-				break;
-			case SWAP:
-//				dest = frame_get_frame();
-				swap_load_to_frame(dest, t->value);
-				break;
-			case FILE:
-//				dest = frame_get_frame();
-				filesys_load_to_frame(dest, t->value);
-				break;
+			    if(pagedir_is_dirty(cur->pagedir, t->key)) {
+			    	mmap_write_file(t->origin, t->key, t->value);
+			    }
+			    pagedir_clear_page(cur->pagedir, t->key);
+			    hash_delete(page_table, &(t->elem));
+         		frame_free_frame(t->value);
+			    free(t);
+			    break;
 			default:
-				ASSERT(false);
+				success = false;
 		}
 		
-		/* TODO modify the mapping in original page_table*/
 	}
+	else {
+		success = false;
+	}
+	lock_release(&page_lock);
+	return success;
 }
 
-/* interface for other modules*/
-struct page_table_elem*
-page_map_to_frame(struct hash *page_table, void *key, void *value) {
-	struct page_table_elem* e = page_find(page_table, key);
-	e->status = FRAME;
-	e->value = value;
-	/* TODO modify the mapping in original page_table*/
+/* switch a page from FRAME to SWAP */
+bool page_status_eviction(struct thread *cur, void *upage, void *index, bool to_swap) {
+	struct page_table_elem *t = page_find(cur->page_table, upage);
+    bool success = true;
+    
+	if(t != NULL && t->status == FRAME) {
+		if(to_swap) {
+			t->value = index;
+			t->status = SWAP;
+		}
+		else {
+//            printf("frame to file :%d, %p->%p\n", cur->tid, t->value, t->origin);
+			ASSERT( t->origin != NULL );
+			t->value = t->origin;
+			t->status = FILE;
+		}
+		pagedir_clear_page(cur->pagedir, upage);
+	}
+	else {
+//	  printf("--%d, %p, %p, %d--", cur->tid, t, upage, ((struct mmap_handler*)t->origin)->is_static_data);
+	  if (t != NULL){
+	    printf("%s\n", t->status == FILE ? "flie" : "swap");
+	  }
+	  else
+	    puts("NULL");
+	  success = false;
+	}
+
+	return success;
+	
 }
 
-struct page_table_elem*
-page_map_to_swap(struct hash *page_table, void *key, void *value) {
-	struct page_table_elem* e = page_find(page_table, key);
-	e->status = SWAP;
-	e->value = value;
-	/* TODO modify the mapping in original page_table*/
-}
-
-struct page_table_elem*
-page_map_to_file(struct hash *page_table, void *key, void *value) {
-	struct page_table_elem* e = page_find(page_table, key);
-	e->status = FILESYS;
-	e->value = value;
-	/* TODO modify the mapping in original page_table*/
-}
 
 /* used to check whether the two pages are the same */
 bool page_hash_less(const struct hash_elem *lhs, const struct hash_elem *rhs, void *aux UNUSED) {
@@ -137,33 +341,27 @@ unsigned page_hash(const struct hash_elem *e, void* aux UNUSED){
 }
 
 /* return FRAME and SWAP slot back */
-/* TODO maybe there is something need to be written back to FILESYS */
+/* TODO_end: maybe there is something need to be written back to FILESYS */
+/* note: nothing to do with FILESYS, FILESYS key in this table is read-only */
+
 void page_destroy_frame_likes(struct hash_elem *e, void *aux UNUSED) {
 	struct page_table_elem *t = hash_entry(e, struct page_table_elem, elem);
 
 	if(t->status == FRAME) {
-//		frame_free_frame(e->value);
+//    printf("des-value: %p\n", t->value);
+	  pagedir_clear_page(thread_current()->pagedir, t->key);
+		frame_free_frame(t->value);
 	}
 	else if(t->status == SWAP) {
-//		swap_free_slot(e->value);
+		swap_free((index_t) t->value);
 	}
-	else;
+	free(t);
 }
 
 
-/* create a stack slot exactly below "used" (make sure that space above "used" is full)*/
-bool
-page_stack_growth(struct hash *page_table, void *used) {
-	struct page_table_elem *stack_elem = malloc(sizeof(*stack_elem));
-	
-	if(stack_elem != NULL) {
-		stack_elem->key = used - PGSIZE;
-		stack_elem->value = NULL;
-		stack_elem->status = ZEROS;
-		hash_insert(page_table, &(stack_elem->elem));
-		return true;
-	}
-	else {
-		return false;
-	}
+struct page_table_elem* page_find_with_lock(page_table_t *page_table, void *upage){
+	lock_acquire(&page_lock);
+	struct page_table_elem* tmp = page_find(page_table, upage);
+	lock_release(&page_lock);
+	return tmp;
 }

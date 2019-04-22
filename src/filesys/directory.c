@@ -51,9 +51,11 @@ dir_open (struct inode *inode)
 
 /* Opens the root directory and returns a directory for it.
    Return true if successful, false on failure. */
+int cnt = 0;
 struct dir *
 dir_open_root (void)
 {
+  cnt++;
   return dir_open (inode_open (ROOT_DIR_SECTOR));
 }
 
@@ -69,6 +71,7 @@ dir_reopen (struct dir *dir)
 void
 dir_close (struct dir *dir) 
 {
+  cnt--;
   if (dir != NULL)
     {
       inode_close (dir->inode);

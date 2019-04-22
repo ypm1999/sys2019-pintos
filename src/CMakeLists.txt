@@ -3,7 +3,7 @@ project(mypintos C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_definitions(-DUSERPROG -DFILESYS -DVM)
+add_definitions(-DUSERPROG -DFILESYS)
 
 include_directories(.)
 include_directories(devices)
@@ -348,5 +348,10 @@ add_executable(mypintos
         userprog/tss.h
         threads/real-number.c
         threads/real-number.h
-        vm/frame.c
-        vm/frame.h)
+#        vm/frame.c
+#        vm/frame.h
+#        vm/swap.c
+#        vm/swap.h
+#        vm/page.c
+#        vm/page.h
+        )

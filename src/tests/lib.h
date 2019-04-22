@@ -29,7 +29,7 @@ void fail (const char *, ...) PRINTF_FORMAT (1, 2) NO_RETURN;
 #define CHECK(SUCCESS, ...)                     \
         do                                      \
           {                                     \
-            msg (__VA_ARGS__);                  \
+            msg(__VA_ARGS__);                   \
             if (!(SUCCESS))                     \
               fail (__VA_ARGS__);               \
           }                                     \
