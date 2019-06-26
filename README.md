@@ -1,69 +1,62 @@
-                                     ___   
-       	           __               | _/
-       /\________ /  | ___ ______ __| |
-      /  ___/  _ \|  | \  |  \  |/ __ | 
-      \___ (  <_> )  _\|  |  /  / /_/ | 
-     /______>____/|__| |____/|__\____ | 
-       	                     |__|    \/ 
-                                
+
 # sys2019-pintos
+
+> ### 运行编译环境
+> * gcc 版本不低于 gcc6
+> * bochs 版本为2.6.9
+
 
 ------
 
 ## Project 1 THREADS
 
-
-
 ### 一. 设计概览
-
 * 重写 timer_sleep 函数，采取设置闹钟时间唤醒进程的机制。
 * 实现优先级调度，包含抢占机制和优先级捐赠。 
-* 实现多级反馈调度，使用 4.4BSD Scheduler 机制定时更新线程的优先级。
+* 实现多级反馈调度，使用 BSD Scheduler 机制定时更新线程的优先级。
 
 ### 二. 设计细节
 
-#### 1. timer_sleep
-
+#### 1. Timer_sleep
 结构设计：
-1. 在 thread 类中增加一个成员变量 sleep_ticks 来记录这个线程的剩余休眠时间。
-2. 增加 thread_sleep_ticks_handler 函数用来更新 sleep_ticks。
+1. 在 `thread` 类中增加一个成员变量 `sleep_ticks` 来记录这个线程的剩余休眠时间。
+2. 增加 `thread_sleep_ticks_handler` 函数用来更新 `sleep_ticks`。
 
 算法设计：
-调用 timer_sleep 函数时把线程阻塞， 利用操作系统自身的时钟中断加入对线程状态的检测， 每次检测将调用 thread_sleep_ticks_handler 更新 sleep_ticks，若 sleep_ticks 归零则唤醒这个线程。
+调用 `timer_sleep` 函数时把线程阻塞， 利用操作系统自身的时钟中断加入对线程状态的检测， 每次检测将调用 `thread_sleep_ticks_handler` 更新 `sleep_ticks`，若 `sleep_ticks` 归零则唤醒这个线程。
 
-#### 2. priority
-
-1）preemption
+#### 2. Priority
+1）Preemption
 基本思想：
 **维护就绪队列为一个优先级队列**，**且正在运行的进程的优先级是最高的**。
 
 算法设计：
 考虑一个进程何时进入就绪队列:
-1. thread_unblock
-2. init_thread
-3. thread_yield
+1. `thread_unblock`
+2. `init_thread`
+3. `thread_yield`
 那么我们只要在这三种情况下维护就绪队列为优先级队列即可。
 
-具体实现用 list_insert_ordered 完成。
+具体实现用 `list_insert_ordered` 完成。
 
-2）donation
+2）Donation
 
 基本思想：
 当发现高优先级的任务因为低优先级任务占用资源而阻塞时，就将低优先级任务的优先级提升到等待它所占有的资源的最高优先级任务的优先级。
 
 结构设计：
-1. 增加 thread_get_priority，thread_set_priority，thread_update_priority 函数。
+1. 增加 `thread_get_priority`，`thread_set_priority`，`thread_update_priority` 函数。
 2. 在 thread 类中加入优先级队列，用于记录捐赠情况。
-3. 重写 lock_acquire, lock_release 函数。
-3. 在 lock 类中加入优先级队列，用于记录捐赠情况。
+3. 重写 `lock_acquire`, `lock_release` 函数。
+3. 在 `lock` 类中加入优先级队列，用于记录捐赠情况。
 
 算法设计：
-1.  在一个线程获取一个锁的时候， 如果拥有这个锁的线程优先级比自己低就提高它的优先级，并且如果这个锁还被别的锁锁着， 将会递归地捐赠优先级， 然后在这个线程释放掉这个锁之后恢复未捐赠逻辑下的优先级。
-2. 如果一个线程被多个线程捐赠， 维护当前优先级为捐赠优先级中的最大值（acquire和release之时）。
-4. 在释放锁对一个锁优先级有改变的时候应考虑其余被捐赠优先级和当前优先级。
-6. 将锁的等待队列实现为优先级队列，释放锁的时候若优先级改变则可以发生抢占。
+1. 在一个线程获取一个锁的时候， 如果拥有这个锁的线程优先级比自己低就提高它的优先级，并且如果这个锁还被别的锁锁着， 将会递归地捐赠优先级， 然后在这个线程释放掉这个锁之后恢复未捐赠逻辑下的优先级。
+1. 如果一个线程被多个线程捐赠， 维护当前优先级为捐赠优先级中的最大值（acquire和release之时）。
+2. 在释放锁对一个锁优先级有改变的时候应考虑其余被捐赠优先级和当前优先级。
+3. 将锁的等待队列实现为优先级队列，释放锁的时候若优先级改变则可以发生抢占。
 
-#### 3.  4.4BSD Scheduler
+#### 3 BSD Scheduler
 基本思想：
 维护了64个队列， 每个队列对应一个优先级， 从PRI_MIN到PRI_MAX。每隔一定时间，通过一些公式计算来计算出线程当前的优先级， 系统调度的时候会从高优先级队列开始选择线程执行， 这里线程的优先级随着操作系统的运转数据而动态改变。
 
@@ -71,12 +64,12 @@
 1. 增加浮点类，用于计算优先级。
 2. 增加用来修改公式参数的函数以及更新优先级的函数。
 
-算法设计：
-http://web.stanford.edu/class/cs140/projects/pintos/pintos_7.html
+算法设计：http://web.stanford.edu/class/cs140/projects/pintos/pintos_7.html
 
 ### 三. 测试时遇到的问题
 
 编译命令是否加 -O (优化) 会影响 2 个测试点的测试结果。这是因为 4.4BSD Scheduler 算法本身就是依赖时间的，加优化与否会导致运行速度不一样，从而影响优先级的计算。
+
 
 ------
 
@@ -95,60 +88,61 @@ pintos 的第二个项目是实现用户程序，主要实现了以下部分:
 
 #### 1. command line 执行可执行文件
 
-本部分的设计主要是处理command line 的参数传递部分。传递参数主要分为两步，第一步是分离参数，第二步是把参数告诉要执行的程序。
-使用strtok_r()函数可以完成实现command line中参数的切割，将一整行命令切成可执行文件名和参数。
-参数分离完成之后，采用栈来使得用户程序能够读取到这些参数。以命令"/bin/ls -l foo bar"为例, 参数在栈中的位置如下所示:
+本部分的设计主要是处理command line的参数传递部分。传递参数主要分为两步，第一步是分离参数，第二步是把参数告诉要执行的程序。
+使用`strtok_r`函数可以完成实现command line中参数的切割，将一整行命令切成可执行文件名和参数。
+参数分离完成之后，采用栈来使得用户程序能够读取到这些参数。以命令`/bin/ls -l foo bar`为例, 参数在栈中的位置如下所示:
 
-    Address	        Name	        Data	        Type
-    0xbffffffc	    argv[3][...]	bar\0	        char[4]
-    0xbffffff8	    argv[2][...]	foo\0	        char[4]
-    0xbffffff5	    argv[1][...]	-l\0	        char[3]
-    0xbfffffed	    argv[0][...]	/bin/ls\0	    char[8]
-    0xbfffffec	    word-align	    0	            uint8_t
-    0xbfffffe8	    argv[4]	        0	            char *
-    0xbfffffe4	    argv[3]	        0xbffffffc	    char *
-    0xbfffffe0	    argv[2]	        0xbffffff8	    char *
-    0xbfffffdc	    argv[1]	        0xbffffff5	    char *
-    0xbfffffd8	    argv[0]	        0xbfffffed	    char *
-    0xbfffffd4	    argv	        0xbfffffd8	    char **
-    0xbfffffd0	    argc	        4	            int
-    0xbfffffcc	    return address	0	            void (*) ()
+    Address         Name                Data            Type
+    0xbffffffc      argv[3][...]        bar             char[4]
+    0xbffffff8      argv[2][...]        foo             char[4]
+    0xbffffff5      argv[1][...]        -l              char[3]
+    0xbfffffed      argv[0][...]        /bin/ls         char[8]
+    0xbfffffec      word-align          0               uint8_t
+    0xbfffffe8      argv[4]             0               char *
+    0xbfffffe4      argv[3]             0xbffffffc      char *
+    0xbfffffe0      argv[2]             0xbffffff8      char *
+    0xbfffffdc      argv[1]             0xbffffff5      char *
+    0xbfffffd8      argv[0]             0xbfffffed      char *
+    0xbfffffd4      argv                0xbfffffd8      char **
+    0xbfffffd0      argc                4               int
+    0xbfffffcc      return address      0               void (*) ()
 只需要将分离出来的参数按照 从右到左、data-align-pointer-argv-argc-return_addr 的顺序压入栈中，程序就可以正确地读取到参数
 
 #### 2. 用户的syscall指令
 用户程序有时候需要“借用”内核的权限，来进行一些比较底层的操作，比如执行一个新的程序、读写I\O等等。Syscall 提供了一个给用户程序内核权限的接口，并且要进行严格的检查以保证用户程序的所有操作都是合法的。
-在Pintos中，一共涉及到了11个syscall操作，如下所示：
+在pintos中，一共涉及到了11个syscall操作，如下所示：
 
 
-- exec 执行一个程序
-    - 主要依靠调用process_execute() 实现。但是由于孩子与父亲之间需要进行充分的信息交流，所以借助信号量来保持孩子与父亲之间的同步问题，确保进程之间的正确调度
-- wait 等待孩子执行完毕
-    - 调用 process_wait() 函数实现，process_wait() 中，父进程会首先判断子进程是否已经返回，如果子进程已经返回，父进程会直接将该进程从它的儿子列表中移除。如果子进程未返回，父亲会在子进程的信号量上等，直到子进程返回
-- halt 停机
-    - 调用shutdown_power_off()函数实现
-- exit 退出当前进程
-    - child需要将自己的返回值和状态告诉father，并设置好返回值，调用thread_exit()让自己的线程退出
-- open 打开某个文件
-    - 调用filesys_open()函数实现。此处需要一个list记录开过的文件
-- create 创建文件
-    - 调用 filesys_create() 函数实现
-- remove 删除文件
-    - 调用 filesys_remove() 函数实现
-- file_size 获得文件的大小
-    - 调用 file_length() 实现
-- read 读取输入源中指定长度的内容
-    - 读取源分为标准输入和文件输入两种。标准输入调用 input_getc() 内容，文件输入调用 file_read() 直接读取得到指定大小的内容
-- write 向输出对象写入指定长度的内容
-    - 写入对象分为标准输出和文件输出两种。标准输出调用 putbuf() 输出内容，文件输出调用 file_write() 直接写入到指定文件
-- seek 将文件指针跳转到文件中的指定位置
-    -  调用 file_seek() 实现
-- tell 获取文件指针目前在文件中的位置
-    -  调用 file_tell() 实现
-- close 关闭文件
-    -  调用 file_close() 关闭文件 并且在已经打开的文件list中删除这个文件句柄
+- `exec` 执行一个程序
+    - 主要依靠调用`process_execute` 实现。但是由于孩子与父亲之间需要进行充分的信息交流，所以借助信号量来保持孩子与父亲之间的同步问题，确保进程之间的正确调度
+- `wait` 等待孩子执行完毕
+    - 调用 `process_wait` 函数实现，`process_wait` 中，父进程会首先判断子进程是否已经返回，如果子进程已经返回，父进程会直接将该进程从它的儿子列表中移除。如果子进程未返回，父亲会在子进程的信号量上等，直到子进程返回
+- `halt` 停机
+    - 调用`shutdown_power_off`函数实现
+- `exit` 退出当前进程
+    - child需要将自己的返回值和状态告诉father，并设置好返回值，调用`thread_exit`让自己的线程退出
+- `open` 打开某个文件
+    - 调用`filesys_open`函数实现。此处需要一个list记录开过的文件
+- `create` 创建文件
+    - 调用 `filesys_create` 函数实现
+- `remove` 删除文件
+    - 调用 `filesys_remove` 函数实现
+- `file_size` 获得文件的大小
+    - 调用 `file_length` 实现
+- `read` 读取输入源中指定长度的内容
+    - 读取源分为标准输入和文件输入两种。标准输入调用 `input_getc` 内容，文件输入调用 `file_read` 直接读取得到指定大小的内容
+- `write` 向输出对象写入指定长度的内容
+    - 写入对象分为标准输出和文件输出两种。标准输出调用 `putbuf` 输出内容，文件输出调用 `file_write` 直接写入到指定文件
+- `seek` 将文件指针跳转到文件中的指定位置
+    -  调用 `file_seek` 实现
+- `tell` 获取文件指针目前在文件中的位置
+    -  调用 `file_tell` 实现
+- `close` 关闭文件
+    -  调用 `file_close` 关闭文件 并且在已经打开的文件list中删除这个文件句柄
 
 #### 3. bonus——禁止写入正在执行的可执行文件
-在 thread_exec() 中，将执行的可执行文件做 file_open() 操作， 然后调用 file_deny_write() 加锁，禁止写入文件。在 thread_exit() 中，将这个可执行文件调用 file_allow_write() 解锁，允许写入文件，再调用 file_close() 关闭文件。
+在 `thread_exec` 中，将执行的可执行文件做 `file_open` 操作， 然后调用 `file_deny_write` 加锁，禁止写入文件。在 `thread_exit` 中，将这个可执行文件调用 `file_allow_write` 解锁，允许写入文件，再调用 `file_close` 关闭文件。
+
 
 ------
 
@@ -226,6 +220,8 @@ pintos的第三个项目是在前两个项目的基础上实现虚拟内存，�
 * 因为makefile中链接了项目中的所有文件，它们都会被编译，所以有时候缺少了include头文件不会被发现，实际运行时可能会调用一些只有声明没有实体的函数，得到错误的结果。
 * 为了得到完整的调试信息，我们中途删去了编译选项中的-O，但是没有得到足够优化一度使project1中的两个测试点始终不得通过。
 * 实现虚拟内存前后判断用户访问内存是否合法的方法不一样，应该用#ifdef VM分别处理。
-* Makefile.userprog里LDFLAGS要加上max-page-size=0x1000，不然在gcc（非工具链）下无法通过所有测试。
+* Makefile.userprog里LDFLAGS要加上`max-page-size=0x1000`，不然在gcc（非工具链）下无法通过所有测试。
 * load可执行文件时并没有读任何可执行文件的内容，只是在supplemental page table处注册了一下而已，运行的时候code segment里出现了page fault后才会真正地去读——所以load完了后不能关闭可执行文件的指针。
 
+
+------
