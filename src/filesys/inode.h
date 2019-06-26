@@ -20,4 +20,11 @@ void inode_deny_write (struct inode *);
 void inode_allow_write (struct inode *);
 off_t inode_length (const struct inode *);
 
+bool inode_isdir (const struct inode *);
+void inode_set_dir (struct inode *);
+
+/* Implementation by ymt Started */
+int inode_get_opencnt(struct inode *);
+/* Implementation by ymt Ended */
+
 #endif /* filesys/inode.h */

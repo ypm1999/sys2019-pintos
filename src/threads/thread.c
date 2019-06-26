@@ -264,6 +264,12 @@ thread_create (const char *name, int priority,
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
 
+  /* Implementation by ymt Started */
+#ifdef FILESYS
+  t->current_dir = thread_current()->current_dir;
+#endif
+  /* Implementation by ymt Ended */
+
   /* Implementation by Wang Started */
   struct child_message *own = palloc_get_page (PAL_ZERO);
   own->tid = tid;
@@ -888,3 +894,16 @@ struct file_handle* syscall_get_file_handle(int fd){
 
 
 /* Implementation by ypm Ended */
+
+/* Implementation by ymt Started */
+#ifdef FILESYS
+/*
+ * Set main thread's current directory
+ * MUST use after filesys init
+ * */
+void set_main_thread_dir()
+{
+  initial_thread->current_dir = dir_open_root();
+}
+#endif
+/* Implementation by ymt Ended */

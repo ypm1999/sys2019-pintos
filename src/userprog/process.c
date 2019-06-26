@@ -466,6 +466,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (success)
   {
     t->exec_file = file;
+    /* Implementation by ymt Started */
+#ifdef FILESYS
+    t->current_dir = get_file_dir(file);
+#endif
+    /* Implementation by ymt Ended */
     file_deny_write(file);
   }
   return success;

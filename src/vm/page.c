@@ -109,7 +109,8 @@ page_page_fault_handler(const void *vaddr, bool to_write, void *esp) {
 	ASSERT(is_user_vaddr(vaddr));
 	ASSERT(!(t != NULL && t->status == FRAME));
 //	printf("vaddr:%p    esp:%p\n", vaddr, esp, PAGE_STACK_UNDERLINE);
-	if(to_write == true && t != NULL && t->writable == false) return false;
+	if(to_write == true && t != NULL && t->writable == false)
+	  return false;
 		
 	if(upage >= PAGE_STACK_UNDERLINE) {
 		if(vaddr >= esp - PAGE_INST_MARGIN) {

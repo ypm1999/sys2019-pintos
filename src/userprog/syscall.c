@@ -6,7 +6,6 @@
 #include <threads/malloc.h>
 #include <filesys/file.h>
 #include <threads/pte.h>
-#include <filesys/directory.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
@@ -16,6 +15,10 @@
 #include "process.h"
 #ifdef VM
 #include "vm/page.h"
+#endif
+#ifdef FILESYS
+#include "filesys/directory.h"
+#include "filesys/inode.h"
 #endif
 
 static void syscall_handler(struct intr_frame *);
@@ -44,6 +47,15 @@ static struct lock filesys_lock;
 /* Implementation by ymt Started */
 static void syscall_mmap(struct intr_frame *f, int fd, const void *obj_vaddr);
 static void syscall_munmap(struct intr_frame *f, mapid_t mapid);
+
+#ifdef FILESYS
+static void syscall_chdir(struct intr_frame *f, const char *dir);
+static void syscall_mkdir(struct intr_frame *f, const char *dir);
+static void syscall_readdir(struct intr_frame *f, int fd, char *name);
+static void syscall_isdir(struct intr_frame *f, int fd);
+static void syscall_inumber(struct intr_frame *f, int fd);
+#endif
+
 /* Implementation by ymt Ended */
 
 
@@ -70,6 +82,11 @@ struct file* syscall_file_open(const char * name){
 static void
 syscall_handler (struct intr_frame *f UNUSED)
 {
+#ifdef VM
+  /* 	Implementation by Chen Started */
+  thread_current ()->esp = f->esp;
+  /* 	Implementation by Chen ended */
+#endif
 
   /* Implementation by ypm Started */
   if (!syscall_check_user_buffer(f->esp, 4, false))
@@ -77,12 +94,7 @@ syscall_handler (struct intr_frame *f UNUSED)
 
   int call_num = *((int *) f->esp);
   void *arg1 = f->esp + 4, *arg2 = f->esp + 8, *arg3 = f->esp + 12;
-#ifdef VM
-  /* 	Implementation by Chen Started */
-  struct thread *cur = thread_current ();
-  cur->esp = f->esp;
-  /* 	Implementation by Chen ended */
-#endif
+
   switch (call_num){
     case SYS_EXIT:
     case SYS_EXEC:
@@ -95,6 +107,16 @@ syscall_handler (struct intr_frame *f UNUSED)
 #ifdef VM
     case SYS_MUNMAP:
 #endif
+
+      /* Implementation by ymt Started */
+#ifdef FILESYS
+    case SYS_CHDIR:
+    case SYS_MKDIR:
+    case SYS_ISDIR:
+    case SYS_INUMBER:
+#endif
+      /* Implementation by ymt Ended */
+
       if (!syscall_check_user_buffer(arg1, 4, false))
         thread_exit_with_return_value(f, -1);
       break;
@@ -104,6 +126,11 @@ syscall_handler (struct intr_frame *f UNUSED)
 #ifdef VM
     case SYS_MMAP:
 #endif
+      /* Implementation by ymt Started */
+#ifdef FILESYS
+    case SYS_READDIR:
+#endif
+      /* Implementation by ymt Ended */
       if (!syscall_check_user_buffer(arg1, 8, false))
         thread_exit_with_return_value(f, -1);
       break;
@@ -155,8 +182,8 @@ syscall_handler (struct intr_frame *f UNUSED)
     case SYS_FILESIZE:
       syscall_filesize(f, *((int *) arg1));
       break;
-#ifdef VM
       /* Implementation by ymt Started */
+#ifdef VM
     case SYS_MUNMAP:
       syscall_munmap(f, *((mapid_t *) arg1));
       break;
@@ -164,8 +191,30 @@ syscall_handler (struct intr_frame *f UNUSED)
     case SYS_MMAP:
       syscall_mmap(f, *((int *) arg1), *((void **) arg2));
       break;
-      /* Implementation by ymt Ended */
 #endif
+#ifdef FILESYS
+    case SYS_CHDIR:
+      syscall_chdir(f, *((char **) arg1));
+      break;
+
+    case SYS_MKDIR:
+      syscall_mkdir(f, *((char **) arg1));
+      break;
+
+    case SYS_READDIR:
+      syscall_readdir(f, *((int *) arg1), *((char **) arg2));
+      break;
+
+    case SYS_ISDIR:
+      syscall_isdir(f, *((int *) arg1));
+      break;
+
+    case SYS_INUMBER:
+      syscall_inumber(f, *((int *) arg1));
+      break;
+
+#endif
+      /* Implementation by ymt Ended */
     case SYS_CREATE:
       syscall_create(f, *((void **) arg1), *((unsigned *) arg2));
       break;
@@ -237,10 +286,10 @@ syscall_exit(struct intr_frame *f, const int return_value){
   /* Implementation by Wang Started */
   struct thread *cur = thread_current ();
   if (!cur->grandpa_died)
-    {
-      cur->message_to_grandpa->exited = true;
-      cur->message_to_grandpa->return_value = return_value;
-    }
+  {
+    cur->message_to_grandpa->exited = true;
+    cur->message_to_grandpa->return_value = return_value;
+  }
   /* Implementation by Wang Ended */
 
   thread_exit_with_return_value(f, return_value);
@@ -265,6 +314,12 @@ syscall_open(struct intr_frame *f, const char* name){
   handle->opened_file = tmp_file;
   handle->owned_thread = thread_current();
   handle->fd = fd_next++;
+  /* Implementation by ymt Started */
+#ifdef FILESYS
+  if (inode_isdir(file_get_inode(tmp_file)))
+    handle->opened_dir = dir_open(inode_reopen(file_get_inode(tmp_file)));
+#endif
+  /* Implementation by ymt Ended */
   thread_file_list_inster(handle);
   f->eax = (uint32_t)handle->fd;
 }
@@ -316,7 +371,7 @@ syscall_read(struct intr_frame *f, int fd, const void* buffer, unsigned size){
   }
   else{
     struct file_handle* t = syscall_get_file_handle(fd);
-    if (t != NULL){
+    if (t != NULL && !inode_isdir(file_get_inode(t->opened_file))){
       lock_acquire(&filesys_lock);
       f->eax = (uint32_t)file_read(t->opened_file, (void*)buffer, size);
       lock_release(&filesys_lock);
@@ -338,7 +393,7 @@ syscall_write(struct intr_frame *f, int fd, const void* buffer, unsigned size){
     putbuf(buffer, size);
   else{
     struct file_handle* t = syscall_get_file_handle(fd);
-    if (t != NULL){
+    if (t != NULL && !inode_isdir(file_get_inode(t->opened_file))){
       lock_acquire(&filesys_lock);
       f->eax = (uint32_t)file_write(t->opened_file, (void*)buffer, size);
       lock_release(&filesys_lock);
@@ -364,7 +419,7 @@ syscall_seek(struct intr_frame *f, int fd, unsigned position){
 static void
 syscall_tell(struct intr_frame *f, int fd){
   struct file_handle* t = syscall_get_file_handle(fd);
-  if (t != NULL){
+  if (t != NULL && !inode_isdir(file_get_inode(t->opened_file))){
     lock_acquire(&filesys_lock);
     f->eax = (uint32_t)file_tell(t->opened_file);
     lock_release(&filesys_lock);
@@ -378,6 +433,12 @@ syscall_close(struct intr_frame *f, int fd){
   struct file_handle* t = syscall_get_file_handle(fd);
   if(t != NULL){
     lock_acquire(&filesys_lock);
+    /* Implementation by ymt Started */
+#ifdef FILESYS
+    if (inode_isdir(file_get_inode(t->opened_file)))
+      dir_close(t->opened_dir);
+#endif
+    /* Implementation by ymt Ended */
     file_close(t->opened_file);
     lock_release(&filesys_lock);
     list_remove(&t->elem);
@@ -541,10 +602,10 @@ void mmap_write_file(struct mmap_handler* mh, void* upage, void *kpage)
     else
     {
       if (mh->mmap_addr + file_length(mh->mmap_file) - upage < PGSIZE)
-          file_write_at(mh->mmap_file, kpage, mh->last_page_size,
-                        upage - mh->mmap_addr + mh->file_ofs);
+        file_write_at(mh->mmap_file, kpage, mh->last_page_size,
+                      upage - mh->mmap_addr + mh->file_ofs);
       else
-          file_write_at(mh->mmap_file, kpage, PGSIZE, upage - mh->mmap_addr + mh->file_ofs);
+        file_write_at(mh->mmap_file, kpage, PGSIZE, upage - mh->mmap_addr + mh->file_ofs);
     }
   }
 #endif
@@ -553,7 +614,6 @@ void mmap_write_file(struct mmap_handler* mh, void* upage, void *kpage)
 bool mmap_load_segment(struct file *file, off_t ofs, uint8_t *upage, uint32_t read_bytes, uint32_t zero_bytes, bool writable)
 {
 #ifdef VM
-//  printf("Loading seg upage: %x\n", upage);
   ASSERT(!((read_bytes + zero_bytes) & PGMASK))
   struct thread* cur = thread_current();
   mapid_t mapid = cur->next_mapid++;
@@ -671,6 +731,127 @@ syscall_munmap(struct intr_frame *f, mapid_t mapid)
     f->eax = MAP_FAILED;
     return;
   }
-  #endif
+#endif
 }
+
+#ifdef FILESYS
+
+static void
+syscall_chdir(struct intr_frame *f, const char *dir)
+{
+  if (!syscall_check_user_string(dir) || strlen(dir) == 0)
+  {
+    f->eax = false;
+    return;
+  }
+  struct thread *cur = thread_current();
+  struct dir* target_dir;
+  char *pure_name = malloc(READDIR_MAX_LEN + 1);
+  bool is_dir;
+  ASSERT(dir != NULL)
+  ASSERT(pure_name != NULL)
+  if (is_rootpath(dir))
+  {
+    dir_close(cur->current_dir);
+    cur->current_dir = dir_open_root();
+    f->eax = true;
+    free(pure_name);
+  }
+  else
+  {
+    if (path_paser(dir, &target_dir, &pure_name, &is_dir))
+    {
+      ASSERT(target_dir != NULL)
+      ASSERT(pure_name != NULL)
+      struct dir *res = subdir_lookup(target_dir, pure_name);
+      if (res != NULL)
+      {
+        dir_close(cur->current_dir);
+        cur->current_dir = res;
+        f->eax = true;
+      }
+      else
+        f->eax = false;
+      dir_close(target_dir);
+    }
+    else
+      f->eax = false;
+    free(pure_name);
+  }
+}
+
+static void
+syscall_mkdir(struct intr_frame *f, const char *dir)
+{
+  if (!syscall_check_user_string(dir) || strlen(dir) == 0)
+  {
+    f->eax = false;
+    return;
+  }
+  struct dir* target_dir;
+  char *pure_name = malloc(READDIR_MAX_LEN + 1);
+  bool is_dir;
+  ASSERT(dir != NULL)
+  ASSERT(pure_name != NULL)
+  if(!is_rootpath(dir) && path_paser(dir, &target_dir, &pure_name, &is_dir))
+  {
+    ASSERT(target_dir != NULL)
+    ASSERT(pure_name != NULL)
+    bool res = subdir_create(target_dir, pure_name);
+    dir_close(target_dir);
+    f->eax = res;
+  }
+  else
+    f->eax = false;
+  free(pure_name);
+}
+
+static void
+syscall_readdir(struct intr_frame *f, int fd, char *name)
+{
+  if (fd == 0 || fd == 1
+              || !syscall_check_user_buffer(name, READDIR_MAX_LEN + 1, false))
+  {
+    f->eax = false;
+    return;
+  }
+  struct file_handle *fh = syscall_get_file_handle(fd);
+  if (fh != NULL && is_dirfile(fh))
+  {
+    f->eax = dir_readdir(fh->opened_dir, name);
+  }
+  else
+    f->eax = false;
+}
+
+static void
+syscall_isdir(struct intr_frame *f, int fd)
+{
+  if (fd == 0 || fd == 1)
+  {
+    f->eax = false;
+    return;
+  }
+  struct file_handle *fh = syscall_get_file_handle(fd);
+  f->eax = fh != NULL && is_dirfile(fh);
+}
+
+static void
+syscall_inumber(struct intr_frame *f, int fd)
+{
+  if (fd == 0 || fd == 1)
+  {
+    thread_exit_with_return_value(f, -1);
+  }
+  struct file_handle *fh = syscall_get_file_handle(fd);
+  if (fh != NULL)
+  {
+    f->eax = inode_get_inumber(file_get_inode(fh->opened_file));
+    return;
+  }
+  else
+    f->eax = -1;
+}
+
+#endif
 /* Implementation by ymt Ended */

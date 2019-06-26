@@ -3,6 +3,10 @@
 #include <lib/stdio.h>
 #include "filesys/inode.h"
 #include "threads/malloc.h"
+#ifdef FILESYS
+
+#include "filesys/directory.h"
+#endif
 
 /* An open file. */
 struct file 
@@ -10,6 +14,11 @@ struct file
     struct inode *inode;        /* File's inode. */
     off_t pos;                  /* Current position. */
     bool deny_write;            /* Has file_deny_write() been called? */
+    /* Implementation by ymt Started */
+#ifdef FILESYS
+    struct dir* dir; // for process_load
+#endif
+    /* Implementation by ymt Ended */
   };
 
 /* Opens a file for the given INODE, of which it takes ownership,
@@ -39,7 +48,15 @@ file_open (struct inode *inode)
 struct file *
 file_reopen (struct file *file) 
 {
+  /* Implementation by ymt Started */
+#ifdef FILESYS
+  struct file* res = file_open (inode_reopen (file->inode));
+  set_file_dir(res, dir_reopen(file->dir));
+  return res;
+#else
   return file_open (inode_reopen (file->inode));
+#endif
+  /* Implementation by ymt Ended */
 }
 
 /* Closes FILE. */
@@ -49,8 +66,13 @@ file_close (struct file *file)
   if (file != NULL)
     {
       file_allow_write (file);
+      /* Implementation by ymt Started */
+#ifdef FILESYS
+      dir_close(file->dir);
+#endif
+      /* Implementation by ymt Ended */
       inode_close (file->inode);
-      free (file); 
+      free (file);
     }
 }
 
@@ -167,3 +189,19 @@ file_tell (struct file *file)
   ASSERT (file != NULL);
   return file->pos;
 }
+
+/* Implementation by ymt Started */
+#ifdef FILESYS
+void
+set_file_dir(struct file *file, struct dir* dir)
+{
+    file->dir = dir;
+}
+
+struct dir*
+get_file_dir(struct file* file)
+{
+  return file->dir;
+}
+#endif
+/* Implementation by ymt Ended */

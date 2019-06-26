@@ -9,6 +9,7 @@
 #include "threads/real-number.h"
 #include "threads/interrupt.h"
 #include "filesys/off_t.h"
+#include "filesys/directory.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -163,8 +164,13 @@ struct thread
     struct list mmap_file_list;
     mapid_t next_mapid;
     /* Implementation by ymt Ended */
-#endif
 
+#endif
+    /* Implementation by ymt Started */
+#ifdef FILESYS
+    struct dir *current_dir;
+#endif
+    /* Implementation by ymt Ended */
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
 
@@ -175,6 +181,11 @@ struct file_handle{
     int fd;
     struct file* opened_file;
     struct thread* owned_thread;
+    /* Implementation by ymt Started */
+#ifdef FILESYS
+    struct dir* opened_dir;
+#endif
+    /* Implementation by ymt Ended */
     struct list_elem elem;
 };
 /* Implementation by ypm Ended */
@@ -255,6 +266,12 @@ void thread_exit_with_return_value(struct intr_frame *f, int return_value);
 void thread_file_list_inster(struct file_handle* fh);
 struct file_handle* syscall_get_file_handle(int fd);
 /* Implementation by ypm Ended */
+
+/* Implementation by ymt Started */
+#ifdef FILESYS
+void set_main_thread_dir();
+#endif
+/* Implementation by ymt Ended */
 
 #endif /* threads/thread.h */
 

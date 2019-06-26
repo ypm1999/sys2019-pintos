@@ -133,6 +133,9 @@ pintos_init (void)
   ide_init ();
   locate_block_devices ();
   filesys_init (format_filesys);
+  /* Implementation by ymt Started */
+  set_main_thread_dir();
+  /* Implementation by ymt Ended */
 #endif
 
 #ifdef VM
